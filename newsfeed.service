@@ -1,0 +1,12 @@
+[Unit]
+Description=serve newsfeed
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/opt/voice-newsfeed-backend
+ExecStart=/usr/local/bin/docker-compose up --build -d
+
+[Install]
+WantedBy=multi-user.target
