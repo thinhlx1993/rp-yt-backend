@@ -1,4 +1,5 @@
 import random
+import json
 from time import sleep, time
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -89,9 +90,10 @@ wait.until(expected_conditions.url_matches('https://www.youtube.com/'))
 browser.get(report_channel + '/videos')
 videos = browser.find_elements_by_id('video-title')
 video = random.choice(videos)
-watch_videos(browser, video.get_attribute('href'))
+href = video.get_attribute('href')
+watch_videos(browser, href)
         
-sleep(random.randint(0, 120))
+sleep(random.randint(0, 10))
 # Report this channel
 browser.get(report_link)
 tab_start = browser.find_element_by_id('tab-start')
@@ -116,18 +118,17 @@ notes.send_keys(report_note)
 html = browser.find_element_by_tag_name('html')
 html.send_keys(Keys.END)
 
+
+
 start = time()
 mainWin = browser.current_window_handle  
 
-wait.until(element_has_css_class((By.TAG_NAME, 'iframe'), ""))
 # move the driver to the first iFrame 
-browser.switch_to_frame(browser.find_element_by_tag_name("iframe"))
+recaptcha = browser.find_element_by_class_name('g-recaptcha')
+browser.switch_to_frame(recaptcha.find_element_by_css_selector("div > div > iframe"))
 
-wait.until(element_has_css_class((By.ID, 'recaptcha-anchor-label'), "rc-anchor-center-item rc-anchor-checkbox-label"))
-checkbox = browser.find_element_by_id('recaptcha-anchor-label')
-print(checkbox.text)
+checkbox = browser.find_element_by_css_selector('rc-anchor.rc-anchor-normal.rc-anchor-light')
 checkbox.click()
-
 audio_button = browser.find_element_by_id('recaptcha-audio-button')
 print(audio_button.get_attribute('title'))
 audio_button.click()
@@ -135,9 +136,9 @@ audio_button.click()
 download_audio = browser.find_element_by_class_name('rc-audiochallenge-tdownload-link')
 print(download_audio.get_attribute('title'))
 download_audio.click()
-#captcha_visible = browser.find_element_by_class_name('recaptcha-checkbox-checkmark')
-#captcha_visible.click()
-#audio_button = browser.find_element_by_id('recaptcha-audio-button')
-#audio_button.click()
-#play_button = browser.find_element_by_class_name('rc-audiochallenge-play-button')
-#play_button.click()
+captcha_visible = browser.find_element_by_class_name('recaptcha-checkbox-checkmark')
+captcha_visible.click()
+audio_button = browser.find_element_by_id('recaptcha-audio-button')
+audio_button.click()
+play_button = browser.find_element_by_class_name('rc-audiochallenge-play-button')
+play_button.click()

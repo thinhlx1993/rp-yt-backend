@@ -13,11 +13,8 @@ def find_report_link(s):
     
 def watch_videos(browser, href):
     ActionChains(browser) \
-    .key_down(Keys.CONTROL) \
+    .key_up(Keys.CONTROL) \
     .send_keys('t') \
     .key_up(Keys.CONTROL) \
     .perform()
     browser.get(href)
-        
-    
-            
