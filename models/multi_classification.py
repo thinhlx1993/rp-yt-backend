@@ -28,7 +28,7 @@ nb_filters2 = 64
 conv1_size = 3
 conv2_size = 2
 pool_size = 2
-classes_num = 2
+classes_num = 3
 lr = 1e-4
 momentum = 0.9
 epochs = 25
@@ -94,7 +94,7 @@ model.fit_generator(
 target_dir = './models/'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)
-model.save('./models/model.h5')
-model.save_weights('./models/weights.h5')
+model.save('./models/model_bus_bicycles.h5')
+model.save_weights('./models/weights_bus_bicycles.h5')
 
-train_generator.class_indices
+print(train_generator.class_indices)

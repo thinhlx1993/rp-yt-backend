@@ -79,7 +79,7 @@ for i, ret in enumerate(os.walk('./dataset/test_set/bus')):
       continue
 #    print("Label: bus")
     result = predict(ret[0] + '/' + filename)
-    if result == 2:
+    if result == 1:
       bus_t += 1
     else:
       bus_f += 1
@@ -90,7 +90,7 @@ for i, ret in enumerate(os.walk('./dataset/test_set/motorcycles')):
       continue
 #    print("Label: motorcycles")
     result = predict(ret[0] + '/' + filename)
-    if result == 3:
+    if result == 2:
       motorcycles_t += 1
     else:
       motorcycles_f += 1
@@ -133,12 +133,12 @@ Check metrics
 """
 print("True bicycles: ", bicycles_t)
 print("False bicycles: ", bicycles_f)
-print("True bridges: ", bridges_t)
-print("False bridges: ", bridges_f)
 print("True bus: ", bus_t)
 print("False bus: ", bus_f)
 print("True motorcycles: ", motorcycles_t)
 print("False motorcycles: ", motorcycles_f)
+print("True bridges: ", bridges_t)
+print("False bridges: ", bridges_f)
 print("True mountains_or_hills: ", mountains_or_hills_t)
 print("False mountains_or_hills: ", mountains_or_hills_f)
 print("True statues: ", statues_t)
