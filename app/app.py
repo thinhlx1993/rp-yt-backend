@@ -6,44 +6,32 @@ from time import strftime
 from flask import Flask, request
 
 from app.api import v1 as api_v1
-from app.extensions import jwt, sentry, client, redis_store, app_log_handler, scheduler, celery, mail
+from app.extensions import jwt, sentry, client, app_log_handler
 from .settings import ProdConfig
 
 
-def create_app(config_object=ProdConfig, content='app'):
+def create_app(config_object=ProdConfig):
     """
     Init App
     :param config_object:
-    :param content:
     :return:
     """
     app = Flask(__name__, static_url_path="", static_folder="./template", template_folder="./template")
-    # CORS(app)
     app.config.from_object(config_object)
-    register_extensions(app, content)
+    register_extensions(app)
     register_blueprints(app)
     return app
 
 
-def register_extensions(app, content):
+def register_extensions(app):
     """
     Init extension
     :param app:
-    :param content:
     :return:
     """
     client.app = app
     client.init_app(app)
-    mail.init_app(app)
-    redis_store.init_app(app)
-    celery.init_app(app)
-
-    # don't start extensions if content != app
-    if content == 'app':
-        jwt.init_app(app)
-        scheduler.init_app(app)
-        scheduler.start()
-
+    jwt.init_app(app)
     if os.environ.get('FLASK_DEBUG') == '0':
         sentry.init_app(app)
         # logger
@@ -88,3 +76,5 @@ def register_blueprints(app):
     """
     app.register_blueprint(api_v1.auth.api, url_prefix='/api/v1/auth')
     app.register_blueprint(api_v1.user.api, url_prefix='/api/v1/user')
+    app.register_blueprint(api_v1.uploads.api, url_prefix='/api/v1/uploads')
+    app.register_blueprint(api_v1.email.api, url_prefix='/api/v1/email')

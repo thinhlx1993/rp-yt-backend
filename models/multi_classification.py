@@ -28,7 +28,7 @@ nb_filters2 = 64
 conv1_size = 3
 conv2_size = 2
 pool_size = 2
-classes_num = 3
+classes_num = 5
 lr = 1e-4
 momentum = 0.9
 epochs = 25
@@ -85,16 +85,16 @@ Tensorboard log
 
 model.fit_generator(
     train_generator,
-    steps_per_epoch=nb_train_samples // batch_size,
+    steps_per_epoch=2104,
     epochs=epochs,
     validation_data=validation_generator,
     callbacks=[PlotLossesKeras()],
-    validation_steps=nb_validation_samples // batch_size,)
+    validation_steps=492)
 
 target_dir = './models/'
 if not os.path.exists(target_dir):
   os.mkdir(target_dir)
-model.save('./models/model_bus_bicycles.h5')
-model.save_weights('./models/weights_bus_bicycles.h5')
+model.save('./models/model.h5')
+model.save_weights('./models/weights.h5')
 
 print(train_generator.class_indices)

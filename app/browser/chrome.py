@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import random
-import json
 from time import sleep, time
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -9,11 +8,9 @@ import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from custom_conditions import element_has_css_class
+from app.browser.custom_conditions import element_has_css_class
 from untils import find_report_link, watch_videos
-from solve_recaptcha import write_stat, check_exists_by_xpath, wait_between, dimention, solve_images
 
 chrome_driver = 'D:\\Code\\repport-yt-backend\etc\\chromedriver_win32\\chromedriver.exe'
 binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
