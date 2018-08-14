@@ -22,13 +22,23 @@ def get_users():
     Using for get all data of user
     :return:
     """
-    page = int(request.args.get('page'))
-    page_size = int(request.args.get('size'))
-    data = client.db.user.find({}).skip(page_size * page).limit(page_size)
+    try:
+        page = int(request.args.get('page'))
+        page_size = int(request.args.get('size'))
+        search = request.args.get('search', '')
+    except Exception as ex:
+        return send_error(message='Json parse error')
+
+    query = dict()
+    if search and search != '':
+        query['username'] = {"$regex": search}
+
+    data = client.db.user.find(query).skip(page_size * page).limit(page_size)
     totals = client.db.user.count({})
     data = list(data)
     for item in data:
         item['_id'] = str(item['_id'])
+        del item['password']
 
     return_data = dict(
         rows=data,
@@ -109,3 +119,55 @@ def create_user():
     user['create_date'] = int(time.time())
     client.db.user.insert_one(user)
     return send_result(message='Create user successfully')
+
+
+@api.route('', methods=['DELETE'])
+def delete_user():
+    """
+    DELETE user
+    :return:
+    """
+
+    try:
+        _id = request.args.get('id', '')
+    except Exception as ex:
+        return send_error(message='Json parser error', code=442)
+
+    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    if user is None:
+        return send_error(message='Không thể tìm thấy người dùng này, vui lòng thử lại.')
+
+    if user['username'] == 'Administrator':
+        return send_error(message='Không thể xóa người dùng này!')
+
+    client.db.user.remove({'_id': ObjectId(_id)})
+    return send_result(message='Đã xóa thành công.')
+
+
+@api.route('password', methods=['PUT'])
+@jwt_required
+def update_password():
+    """
+    Update user password
+    :return:
+    """
+    params = {
+        '_id': FieldString(),
+        'password': FieldString(),
+    }
+
+    try:
+        json_data = parse_req(params)
+        _id = json_data.get('_id')
+    except Exception as ex:
+        return send_error(message='Json parser error', code=442)
+
+    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    if user is None:
+        return send_error(message='Không tìm thấy người dùng, tải lại trang.')
+
+    if user['username'] != 'Administrator':
+        return send_error(message='Bạn không thể đổi mật khẩu, chỉ admin mới có quyền đổi.')
+
+    client.db.user.update({'_id': ObjectId(_id)}, user)
+    return send_result(message='Thay đổi mật khẩu thành công.')

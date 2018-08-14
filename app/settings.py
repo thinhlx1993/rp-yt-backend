@@ -44,7 +44,10 @@ class DevConfig(Config):
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
     # MongoDB config
-    MONGO_DBNAME = 'youtube'
-    MONGO_HOST = 'localhost'
+    MONGO_DBNAME = 'test-yt'
+    MONGO_HOST = '27.72.147.222'
+    MONGO_USERNAME = 'root'
+    MONGO_PASSWORD = '1234567a@'
+    MONGO_AUTH_SOURCE = 'admin'
     MONGO_CONNECT = False
     CONNECT = False
