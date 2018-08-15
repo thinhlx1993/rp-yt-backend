@@ -2,7 +2,7 @@ import time
 import datetime
 from flask import Blueprint, request
 from bson import ObjectId
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import fields
 from datetime import timedelta
 from app.extensions import client
@@ -59,6 +59,7 @@ def update_user():
         'address': FieldString(),
         'phone': FieldString(),
         'fullname': FieldString(),
+        'role': FieldString(),
     }
 
     try:
@@ -71,7 +72,7 @@ def update_user():
     if user is None:
         return send_error(message='Not found user')
 
-    keys = ('address', 'phone', 'fullname')
+    keys = ('address', 'phone', 'fullname', 'role')
 
     for k in keys:
         v = json_data.get(k, None)
@@ -94,6 +95,7 @@ def create_user():
         'address': FieldString(),
         'phone': FieldString(),
         'fullname': FieldString(),
+        'role': FieldString(),
     }
 
     try:
@@ -107,7 +109,7 @@ def create_user():
     if user is not None:
         return send_error(message='Duplicate user')
 
-    keys = ('username', 'address', 'phone', 'fullname')
+    keys = ('username', 'address', 'phone', 'fullname', 'role')
 
     user = dict()
     for k in keys:
@@ -136,6 +138,9 @@ def delete_user():
     user = client.db.user.find_one({'_id': ObjectId(_id)})
     if user is None:
         return send_error(message='Không thể tìm thấy người dùng này, vui lòng thử lại.')
+
+    if user['role'] != 'admin':
+        return send_error(message='Bạn không thể xóa người dùng này!')
 
     if user['username'] == 'Administrator':
         return send_error(message='Không thể xóa người dùng này!')
@@ -171,3 +176,21 @@ def update_password():
 
     client.db.user.update({'_id': ObjectId(_id)}, user)
     return send_result(message='Thay đổi mật khẩu thành công.')
+
+
+@api.route('/info', methods=['GET'])
+@jwt_required
+def get_user_info():
+    """
+    Get user info
+    :return:
+    """
+    _id = get_jwt_identity()
+    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    if user is None:
+        return send_error(message='Không tìm thấy người dùng, tải lại trang.')
+    return_data = dict(
+        role=user['role'],
+        username=user['username']
+    )
+    return send_result(data=return_data)
