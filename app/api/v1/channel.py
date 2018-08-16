@@ -3,8 +3,10 @@ from flask import Blueprint, request
 from bson import ObjectId
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
+from celery.result import ResultBase
 from app.extensions import client
 from app.utils import send_result, parse_req, send_error, FieldString
+from app.task import stat_report
 
 api = Blueprint('channel', __name__)
 
@@ -103,7 +105,8 @@ def create_channel():
             channel[k] = v
 
     channel['create_date'] = int(time.time())
-    channel['status'] = 'reporting'
+    channel['status'] = 'active'
+    channel['reporting'] = False
     client.db.channel.insert_one(channel)
     return send_result(message='Tạo kênh mới thành công.')
 
@@ -126,3 +129,23 @@ def delete_channel():
 
     client.db.channel.remove({'_id': ObjectId(_id)})
     return send_result(message='Đã xóa thành công.')
+
+
+@api.route('/start', methods=['GET'])
+def start_report():
+    """
+    Start report
+    :return:
+    """
+
+    try:
+        _id = request.args.get('id', '')
+    except Exception as ex:
+        return send_error(message='Json parser error', code=442)
+
+    channel = client.db.channel.find_one({'_id': ObjectId(_id)})
+    if channel is None:
+        return send_error(message='Không thể tìm thấy vui lòng thử lại.')
+
+    start_report.delay()
+    return send_result(message='Khởi tạo thành công')

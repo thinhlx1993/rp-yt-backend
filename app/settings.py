@@ -17,6 +17,9 @@ class ProdConfig(Config):
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     HOST = '0.0.0.0'
     TEMPLATES_AUTO_RELOAD = False
+    # Celery background task config
+    CELERY_BROKER_URL = 'redis://:1234567a@@27.72.147.222:6379/0'
+    CELERY_BACKEND_URL = 'redis://:1234567a@@27.72.147.222:6379/0'
     # JWT Config
     JWT_SECRET_KEY = '1234567a@@'
     JWT_BLACKLIST_ENABLED = True
@@ -39,6 +42,9 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = True  # Disable Debug toolbar
     TEMPLATES_AUTO_RELOAD = True
     HOST = '0.0.0.0'
+    # Celery background task config
+    CELERY_BROKER_URL = 'redis://:1234567a@@192.168.1.9:6379/1'
+    CELERY_BACKEND_URL = 'redis://:1234567a@@192.168.1.9:6379/1'
     # JWT Config
     JWT_SECRET_KEY = '1234567a@@'
     JWT_BLACKLIST_ENABLED = True

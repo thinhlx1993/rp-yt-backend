@@ -6,7 +6,7 @@ from time import strftime
 from flask import Flask, request
 
 from app.api import v1 as api_v1
-from app.extensions import jwt, sentry, client, app_log_handler
+from app.extensions import jwt, client, app_log_handler, celery
 from .settings import ProdConfig
 
 
@@ -14,6 +14,7 @@ def create_app(config_object=ProdConfig):
     """
     Init App
     :param config_object:
+    :param name:
     :return:
     """
     app = Flask(__name__, static_url_path="", static_folder="./template", template_folder="./template")
@@ -31,9 +32,9 @@ def register_extensions(app):
     """
     client.app = app
     client.init_app(app)
+    celery.init_app(app)
     jwt.init_app(app)
     if os.environ.get('FLASK_DEBUG') == '0':
-        sentry.init_app(app)
         # logger
         logger = logging.getLogger('api')
         logger.setLevel(logging.ERROR)
