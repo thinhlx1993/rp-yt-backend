@@ -18,8 +18,8 @@ class ProdConfig(Config):
     HOST = '0.0.0.0'
     TEMPLATES_AUTO_RELOAD = False
     # Celery background task config
-    CELERY_BROKER_URL = 'redis://:1234567a@@27.72.147.222:6379/0'
-    CELERY_BACKEND_URL = 'redis://:1234567a@@27.72.147.222:6379/0'
+    CELERY_BROKER_URL = 'redis://:1234567a@@167.99.145.231:6379/0'
+    CELERY_BACKEND_URL = 'redis://:1234567a@@167.99.145.231:6379/0'
     # JWT Config
     JWT_SECRET_KEY = '1234567a@@'
     JWT_BLACKLIST_ENABLED = True

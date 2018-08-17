@@ -1,18 +1,10 @@
 version: '2'
 
 services:
-  redis:
-      image: 'redis:3.0-alpine'
-      command: redis-server --requirepass 1234567a@@
-      volumes:
-        - 'redis:/data'
-      ports:
-        - '6379:6379'
-
   website:
     build: .
     command: >
-      gunicorn -b 0.0.0.0:5002
+      gunicorn -b 0.0.0.0:5000
         --access-logfile -
         --timeout 60
         --workers 2
@@ -26,9 +18,17 @@ services:
     ports:
       - '5000:5000'
 
-  celery:
+  celery_1:
     build: .
-    command: celery -A app.celery.celery worker --loglevel=info -f logs/celery.log
+    command: celery -A app.celery worker --loglevel=info -f logs/celery_1.log
+    environment:
+      FLASK_DEBUG: '0'
+    volumes:
+      - '.:/app'
+
+  celery_2:
+    build: .
+    command: celery beat -A app.celery --schedule=tmp/celerybeat-schedule --loglevel=INFO --pidfile=tmp/celerybeat.pid -f logs/celery_2.log
     environment:
       FLASK_DEBUG: '0'
     volumes:
