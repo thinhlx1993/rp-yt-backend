@@ -108,6 +108,7 @@ def create_email():
             email[k] = v
 
     email['create_date'] = int(time.time())
+    email['status'] = True
     client.db.email.insert_one(email)
     return send_result(message='Create email successfully')
 

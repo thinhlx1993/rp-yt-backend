@@ -39,6 +39,21 @@ def get_strategy():
     return send_result(data=return_data)
 
 
+@api.route('/all', methods=['GET'])
+@jwt_required
+def get_strategies():
+    """
+    Using for get all data of emails
+    :return:
+    """
+    data = client.db.strategy.find()
+    data = list(data)
+    for item in data:
+        item['_id'] = str(item['_id'])
+
+    return send_result(data=data)
+
+
 @api.route('', methods=['PUT'])
 @jwt_required
 def update_strategy():

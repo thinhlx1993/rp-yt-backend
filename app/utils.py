@@ -3,7 +3,8 @@ import time
 from flask import jsonify
 from .extensions import parser
 from marshmallow import fields, validate as validate_
-
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 now = int(time.time())
 
 
@@ -149,3 +150,27 @@ class FieldNumber(fields.Number):
         if validate is None:
             validate = validate_.Length(max=self.DEFAULT_MAX_LENGTH)
         super(FieldNumber, self).__init__(validate=validate, **metadata)
+
+
+def find_report_link(s):
+    """
+    Ge report link from url
+    :param s:
+    :return:
+    """
+    first = 'https://www.youtube.com/channel/'
+    try:
+        start = s.index(first) + len(first) + 2
+        report_link = 'https://www.youtube.com/reportabuse?u={}'.format(s[start:])
+        return report_link
+    except ValueError:
+        return None
+
+
+def watch_videos(browser, href):
+    ActionChains(browser) \
+        .key_up(Keys.CONTROL) \
+        .send_keys('t') \
+        .key_up(Keys.CONTROL) \
+        .perform()
+    browser.get(href)

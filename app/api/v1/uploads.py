@@ -35,7 +35,7 @@ def upload_email():
     csv_input = csv.reader(stream)
     keys = ('email', 'password', 'recovery_email', 'date')
     new_email = 0
-    duplicated_email = 0
+    error_email = 0
     for row in csv_input:
         email = dict()
         for index, key in enumerate(keys):
@@ -44,12 +44,13 @@ def upload_email():
         email_exist = client.db.email.find_one({'email': email['email']})
         if not email_exist:
             new_email += 1
+            email['status'] = True
             client.db.email.insert_one(email)
         else:
-            duplicated_email += 1
+            error_email += 1
 
     return_data = dict(
         new_email=new_email,
-        duplicated_email=duplicated_email
+        duplicated_email=error_email
     )
     return send_result(data=return_data, message='Upload file successfully')

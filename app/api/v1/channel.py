@@ -33,6 +33,9 @@ def get_channel():
     data = list(data)
     for item in data:
         item['_id'] = str(item['_id'])
+        strategy = client.db.strategy.find_one({'_id': ObjectId(item['strategy'])})
+        if strategy is not None:
+            item['strategy'] = strategy['name']
 
     return_data = dict(
         rows=data,
@@ -52,6 +55,7 @@ def update_channel():
         '_id': FieldString(),
         'name': FieldString(),
         'channel': FieldString(),
+        'strategy': FieldString(),
     }
 
     try:
@@ -64,7 +68,7 @@ def update_channel():
     if channel is None:
         return send_error(message='Not found')
 
-    keys = ('name', 'channel')
+    keys = ('name', 'channel', 'strategy')
 
     for k in keys:
         v = json_data.get(k, None)
@@ -84,6 +88,7 @@ def create_channel():
     params = {
         'name': FieldString(),
         'channel': FieldString(),
+        'strategy': FieldString(),
     }
 
     try:
@@ -96,7 +101,7 @@ def create_channel():
     if channel is not None:
         return send_error(message='Duplicate channel')
 
-    keys = ('name', 'channel')
+    keys = ('name', 'channel', 'strategy')
 
     channel = dict()
     for k in keys:
