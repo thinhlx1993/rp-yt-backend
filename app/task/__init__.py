@@ -19,7 +19,7 @@ from app.utils import find_report_link, watch_videos
 
 # geckodriver = 'D:\\Code\\report-yt-backend\\etc\\geckodriver-v0.21.0-win64\\geckodriver.exe'
 # binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
-geckodriver = '../etc/geckodriver-v0.21.0-linux64/geckodriver'
+geckodriver = '../../etc/geckodriver-v0.21.0-linux64/geckodriver'
 binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
 PROXY_HOST = ''
