@@ -43,8 +43,8 @@ class DevConfig(Config):
     TEMPLATES_AUTO_RELOAD = True
     HOST = '0.0.0.0'
     # Celery background task config
-    CELERY_BROKER_URL = 'redis://:1234567a@@167.99.145.231:6379/1'
-    CELERY_BACKEND_URL = 'redis://:1234567a@@167.99.145.231:6379/1'
+    CELERY_BROKER_URL = 'redis://:1234567a@@167.99.145.231:6379/0'
+    CELERY_BACKEND_URL = 'redis://:1234567a@@167.99.145.231:6379/0'
     # JWT Config
     JWT_SECRET_KEY = '1234567a@@'
     JWT_BLACKLIST_ENABLED = True

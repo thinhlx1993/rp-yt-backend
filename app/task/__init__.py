@@ -17,10 +17,10 @@ from app.task.custom_conditions import element_has_css_class
 from app.task.solve_recaptcha import write_stat, check_exists_by_xpath, wait_between, dimention, solve_images
 from app.utils import find_report_link, watch_videos
 
-# geckodriver = 'D:\\Code\\report-yt-backend\\etc\\geckodriver-v0.21.0-win64\\geckodriver.exe'
-# binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
-geckodriver = '/opt/rp-yt-backend/etc/geckodriver-v0.21.0-linux64/geckodriver'
-binary = '/usr/bin/firefox'
+geckodriver = 'C:\\Users\\Thinh\\Code\\rp-yt-backend\\etc\\geckodriver-v0.21.0-win64\\geckodriver.exe'
+binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
+# geckodriver = '/opt/rp-yt-backend/etc/geckodriver-v0.21.0-linux64/geckodriver'
+# binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
 PROXY_HOST = ''
 PROXY_PORT = ''
@@ -41,7 +41,7 @@ def create_browser():
     # profile.set_preference("network.proxy.http_port",int(PROXY_PORT))
     # profile.set_preference("general.useragent.override","whater_useragent")
     options = webdriver.FirefoxOptions()
-    options.add_argument('-headless')
+    # options.add_argument('-headless')
     browser = webdriver.Firefox(
         executable_path=geckodriver,
         firefox_options=options,
