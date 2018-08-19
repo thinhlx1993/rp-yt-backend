@@ -22,8 +22,8 @@ binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
 # geckodriver = '/opt/rp-yt-backend/etc/geckodriver-v0.21.0-linux64/geckodriver'
 # binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
-PROXY_HOST = ''
-PROXY_PORT = ''
+PROXY_HOST = ['93.155.250.92', '94.130.126.115', '85.109.124.130', '82.148.172.162']
+PROXY_PORT = '8080'
 capabilities = DesiredCapabilities.FIREFOX.copy()
 capabilities['marionette'] = True
 capabilities['acceptSslCerts'] = True
@@ -37,9 +37,14 @@ def create_browser():
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
     # profile.set_preference("network.proxy.type", 1)
-    # profile.set_preference("network.proxy.http",PROXY_HOST)
-    # profile.set_preference("network.proxy.http_port",int(PROXY_PORT))
-    # profile.set_preference("general.useragent.override","whater_useragent")
+    # profile.set_preference("network.proxy.share_proxy_settings", True)
+    # profile.set_preference("network.http.use-cache", False)
+    # profile.set_preference("network.proxy.http", random.choice(PROXY_HOST))
+    # profile.set_preference("network.proxy.http_port", int(PROXY_PORT))
+    # profile.set_preference('network.proxy.ssl', random.choice(PROXY_HOST))
+    # profile.set_preference('network.proxy.ssl_port', int(PROXY_PORT))
+    # profile.set_preference('network.proxy.socks', random.choice(PROXY_HOST))
+    # profile.set_preference('network.proxy.socks_port', int(PROXY_PORT))
     options = webdriver.FirefoxOptions()
     # options.add_argument('-headless')
     browser = webdriver.Firefox(
@@ -74,8 +79,8 @@ def login(browser, email, password, recovery_mail):
         password_inp = browser.find_element_by_css_selector('input.whsOnd.zHQkBf')
         password_inp.send_keys(password)
         browser.find_element_by_id('passwordNext').click()
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "headingText")))
         try:
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "headingText")))
             header = browser.find_element_by_id('headingText')
             if header and header.text == 'Verify it\'s you':
                 print('Need to input recovery email')
@@ -193,6 +198,13 @@ def key_resolver_captcha(api_key, api_url):
         print('Can not get key api 2captcha.com')
 
 
+def change_language(browser):
+    lang_btn = browser.find_element_by_id('yt-picker-language-button')
+    lang_btn.click()
+    vi_btn = browser.find_elements_by_css_selector('div.yt-picker-grid:nth-child(5) > button:nth-child(2)')
+    vi_btn.click()
+
+
 @celery.task()
 def print_hello():
     print('start')
@@ -211,6 +223,9 @@ def stat_report():
             report_note = strategy['note']
             tmp_emails = client.db.email.find({'status': True})
             tmp_emails = list(tmp_emails)
+            if len(tmp_emails) == 0:
+                client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
+                return
             tmp_email = random.choice(tmp_emails)
             email = tmp_email['email']
             password = tmp_email['password']
@@ -239,6 +254,7 @@ def stat_report():
                             api_key, google_key, current_url)
                         key_resolver = key_resolver_captcha(api_key, captcha_resolver_api)
                         if key_resolver is None:
+                            client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
                             return
 
                         browser.switch_to.default_content()
@@ -250,10 +266,14 @@ def stat_report():
                         textarea_box.send_keys(key_resolver)
                         submit_report_btn = browser.find_element_by_id('submit-report')
                         submit_report_btn.click()
-                        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
-                        section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
-                        if section.text == 'Thank You.':
-                            print('Submit report successfully')
+                        # try:
+                        #     WebDriverWait(browser, 30).until(
+                        #         EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
+                        #     section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
+                        #     if section and section.text == 'Thank You.':
+                        #         print('Submit report successfully')
+                        # except Exception as ex:
+                        #     print(str(ex))
 
                     elif submit_report_status == '0':
                         print('Cant not submit report')
@@ -265,7 +285,7 @@ def stat_report():
                 browser.quit()
             else:
                 print('Cant not login to youtube')
-                client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+                # client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
                 # mark as done reporting
                 client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
                 browser.quit()
