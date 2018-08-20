@@ -19,7 +19,7 @@ from app.utils import find_report_link, watch_videos
 
 # geckodriver = 'C:\\Users\\Thinh\\Code\\rp-yt-backend\\etc\\geckodriver-v0.21.0-win64\\geckodriver.exe'
 # binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
-geckodriver = '/app/etc/geckodriver-v0.21.0-linux64/geckodriver'
+geckodriver = '/opt/rp-yt-backend/etc/geckodriver-v0.21.0-linux64/geckodriver'
 binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
 PROXY_HOST = ['93.155.250.92', '94.130.126.115', '85.109.124.130', '82.148.172.162']
@@ -46,7 +46,7 @@ def create_browser():
     # profile.set_preference('network.proxy.socks', random.choice(PROXY_HOST))
     # profile.set_preference('network.proxy.socks_port', int(PROXY_PORT))
     options = webdriver.FirefoxOptions()
-    options.add_argument('-headless')
+    # options.add_argument('-headless')
     browser = webdriver.Firefox(
         executable_path=geckodriver,
         firefox_options=options,
