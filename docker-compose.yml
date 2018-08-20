@@ -28,7 +28,7 @@ services:
 
   celery_2:
     build: .
-    command: celery beat -A app.celery --schedule=tmp/celerybeat-schedule --loglevel=INFO --pidfile=tmp/celerybeat.pid -f logs/celery_2.log
+    command: celery beat -A app.celery --schedule=/tmp/celerybeat-schedule --loglevel=INFO --pidfile=/tmp/celerybeat.pid -f logs/celery_2.log
     environment:
       FLASK_DEBUG: '0'
     volumes:
