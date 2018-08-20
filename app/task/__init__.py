@@ -131,6 +131,7 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
 
         for i in range(4):
             browser.execute_script("window.scrollTo(0, {})".format(random.randint(0, 1080)))
+            sleep(1)
 
         # Report this channel
         report_link = find_report_link(report_channel)
@@ -266,14 +267,16 @@ def stat_report():
                         textarea_box.send_keys(key_resolver)
                         submit_report_btn = browser.find_element_by_id('submit-report')
                         submit_report_btn.click()
-                        # try:
-                        #     WebDriverWait(browser, 30).until(
-                        #         EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
-                        #     section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
-                        #     if section and section.text == 'Thank You.':
-                        #         print('Submit report successfully')
-                        # except Exception as ex:
-                        #     print(str(ex))
+                        try:
+                            WebDriverWait(browser, 30).until(
+                                EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
+                            section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
+                            if section and section.text == 'Thank You.':
+                                print('Submit report successfully')
+                                client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_success': 1}})
+                        except Exception as ex:
+                            print(str(ex))
+                            client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
                     elif submit_report_status == '0':
                         print('Cant not submit report')
@@ -281,6 +284,8 @@ def stat_report():
                     elif submit_report_status == '2':
                         print('Channel suspended save to database')
                         client.db.channel.update({'_id': channel['_id']}, {'$set': {'status': 'Suspended'}})
+                        return
+
                 client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
                 browser.quit()
             else:
