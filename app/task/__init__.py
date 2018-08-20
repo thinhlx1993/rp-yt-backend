@@ -254,30 +254,27 @@ def stat_report():
                         captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
                             api_key, google_key, current_url)
                         key_resolver = key_resolver_captcha(api_key, captcha_resolver_api)
-                        if key_resolver is None:
-                            client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
-                            browser.quit()
-                            return
+                        if key_resolver is not None:
 
-                        browser.switch_to.default_content()
-                        WebDriverWait(browser, 30).until(
-                            EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
-                        browser.execute_script(
-                            "document.getElementById('g-recaptcha-response').style.display = 'block';")
-                        textarea_box = browser.find_element_by_id('g-recaptcha-response')
-                        textarea_box.send_keys(key_resolver)
-                        submit_report_btn = browser.find_element_by_id('submit-report')
-                        submit_report_btn.click()
-                        try:
+                            browser.switch_to.default_content()
                             WebDriverWait(browser, 30).until(
-                                EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
-                            section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
-                            if section and section.text == 'Thank You.':
-                                print('Submit report successfully')
-                                client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_success': 1}})
-                        except Exception as ex:
-                            print(str(ex))
-                            client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
+                                EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
+                            browser.execute_script(
+                                "document.getElementById('g-recaptcha-response').style.display = 'block';")
+                            textarea_box = browser.find_element_by_id('g-recaptcha-response')
+                            textarea_box.send_keys(key_resolver)
+                            submit_report_btn = browser.find_element_by_id('submit-report')
+                            submit_report_btn.click()
+                            try:
+                                WebDriverWait(browser, 30).until(
+                                    EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
+                                section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
+                                if section and section.text == 'Thank You.':
+                                    print('Submit report successfully')
+                                    client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_success': 1}})
+                            except Exception as ex:
+                                print(str(ex))
+                                client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
                     elif submit_report_status == '0':
                         print('Cant not submit report')
