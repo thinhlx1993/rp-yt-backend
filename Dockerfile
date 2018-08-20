@@ -1,18 +1,13 @@
-FROM python:3.5.4-slim
+FROM ubuntu:16.04
 
 ENV INSTALL_PATH /app
 RUN mkdir -p $INSTALL_PATH
 WORKDIR $INSTALL_PATH
 
-RUN apt-get update && apt-get install -y git && apt-get install -y build-essential && apt-get install -y wget && \
-    apt-get install -y libevent-dev python-all-dev && \
-    apt-get install -y libmysqlclient-dev && \
-    cd /usr/local && wget http://ftp.mozilla.org/pub/firefox/releases/61.0/linux-x86_64/en-US/firefox-61.0.tar.bz2 && \
-    tar xvjf firefox-61.0.tar.bz2 && \
-    ln -s /usr/local/firefox/firefox /usr/bin/firefox
+RUN apt-get update && apt-get install -y git wget build-essential python3 python3-dev python3-pip
 
 COPY requirements.txt requirements.txt
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 COPY . .
 
