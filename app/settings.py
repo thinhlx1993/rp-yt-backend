@@ -27,7 +27,7 @@ class ProdConfig(Config):
     # MongoDB config
     MONGO_DBNAME = 'test-yt'
     MONGO_HOST = '167.99.145.231'
-    MONGO_USERNAME = 'root'
+    MONGO_USERNAME = 'admin'
     MONGO_PASSWORD = '1234567a@'
     MONGO_AUTH_SOURCE = 'admin'
     MONGO_CONNECT = False
@@ -52,7 +52,7 @@ class DevConfig(Config):
     # MongoDB config
     MONGO_DBNAME = 'test-yt'
     MONGO_HOST = '167.99.145.231'
-    MONGO_USERNAME = 'root'
+    MONGO_USERNAME = 'admin'
     MONGO_PASSWORD = '1234567a@'
     MONGO_AUTH_SOURCE = 'admin'
     MONGO_CONNECT = False
