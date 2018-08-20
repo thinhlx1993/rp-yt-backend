@@ -20,7 +20,7 @@ services:
 
   celery_1:
     build: .
-    command: celery -A app.celery worker --loglevel=info -f logs/celery_1.log
+    command: celery -A app.celery worker --pool=solo --loglevel=info -f logs/celery_1.log
     environment:
       FLASK_DEBUG: '0'
     volumes:
