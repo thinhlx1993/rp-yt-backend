@@ -256,6 +256,7 @@ def stat_report():
                         key_resolver = key_resolver_captcha(api_key, captcha_resolver_api)
                         if key_resolver is None:
                             client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
+                            browser.quit()
                             return
 
                         browser.switch_to.default_content()
