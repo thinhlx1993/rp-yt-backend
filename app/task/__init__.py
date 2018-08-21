@@ -46,7 +46,7 @@ def create_browser():
     # profile.set_preference('network.proxy.socks', random.choice(PROXY_HOST))
     # profile.set_preference('network.proxy.socks_port', int(PROXY_PORT))
     options = webdriver.FirefoxOptions()
-    # options.add_argument('-headless')
+    options.add_argument('-headless')
     browser = webdriver.Firefox(
         executable_path=geckodriver,
         firefox_options=options,
