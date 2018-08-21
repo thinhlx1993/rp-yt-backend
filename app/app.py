@@ -75,6 +75,7 @@ def register_blueprints(app):
     :param app:
     :return:
     """
+    app.register_blueprint(api_v1.static.api, url_prefix='/')
     app.register_blueprint(api_v1.auth.api, url_prefix='/api/v1/auth')
     app.register_blueprint(api_v1.user.api, url_prefix='/api/v1/user')
     app.register_blueprint(api_v1.uploads.api, url_prefix='/api/v1/uploads')

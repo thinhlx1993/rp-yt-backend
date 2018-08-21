@@ -1,0 +1,113 @@
+{
+  "configVersion": 1,
+  "index": "/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "urls": [
+        "/1.93d68afa0ff79d90e7bf.js",
+        "/2.02b0ff1cb568cc34db39.js",
+        "/3.f98d3f97197f1e18e144.js",
+        "/4.9d2da9d92bc0ec5b91d8.js",
+        "/5.990e09832a0a22eadcd7.js",
+        "/6.218b3d93a07a4ea5a0ff.js",
+        "/7.fd8aa3c4a54f38c6d727.js",
+        "/common.6969c33ef71d479ebd83.js",
+        "/favicon.ico",
+        "/index.html",
+        "/main.3c331d67c06827a291f2.js",
+        "/polyfills.31614ee4be9375c08084.js",
+        "/runtime.46f5a599dfca6b96c170.js",
+        "/styles.5eece72635a097fe2e12.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "urls": [
+        "/assets/icons/icon-256x256.png",
+        "/assets/img/attachments/1.png",
+        "/assets/img/attachments/2.png",
+        "/assets/img/attachments/3.png",
+        "/assets/img/attachments/4.png",
+        "/assets/img/attachments/5.png",
+        "/assets/img/avatars/noavatar.png",
+        "/assets/img/backgrounds/1.jpg",
+        "/assets/img/backgrounds/2.jpg",
+        "/assets/img/backgrounds/3.jpg",
+        "/assets/img/backgrounds/4.png",
+        "/assets/img/backgrounds/arch-pattern.png",
+        "/assets/img/backgrounds/calendar.jpg",
+        "/assets/img/backgrounds/chat.png",
+        "/assets/img/backgrounds/drag-and-drop.jpg",
+        "/assets/img/backgrounds/editor.jpg",
+        "/assets/img/backgrounds/form-wizard.jpg",
+        "/assets/img/backgrounds/inbox.png",
+        "/assets/img/logo.png",
+        "/assets/img/logo_dark.png"
+      ],
+      "patterns": [
+        "https:\\/\\/fonts\\.googleapis\\.com\\/.*"
+      ]
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/1.93d68afa0ff79d90e7bf.js": "fb467aa1d250d632e26dafdcc3fdce35c5fee8f9",
+    "/2.02b0ff1cb568cc34db39.js": "c519ce95961b0b98985c601220b667ece9804512",
+    "/3.f98d3f97197f1e18e144.js": "d2963c1406551b2ea84505ea20ef41dde068fa0d",
+    "/4.9d2da9d92bc0ec5b91d8.js": "5f0de90d9786aafb7a20de07258809264e754bca",
+    "/5.990e09832a0a22eadcd7.js": "63dce80d50673a7421fd7765f43e27dcc5df4c79",
+    "/6.218b3d93a07a4ea5a0ff.js": "5f89181f57216f1eaa38e8c7cf855a40e77b89bc",
+    "/7.fd8aa3c4a54f38c6d727.js": "d3ce6c67ab9fc655a9723a87995eb55f99c5282d",
+    "/assets/icons/icon-256x256.png": "90fd0d3bef637669436346b75a862066c2ee72b7",
+    "/assets/img/attachments/1.png": "33468de9ea7e3fd310818b532bc0fd12f12cd95f",
+    "/assets/img/attachments/2.png": "fd23788d3fee91e3e0d4f5e66fba35e8a4b6c28b",
+    "/assets/img/attachments/3.png": "3ea5562bf8e465f726720c0969a73ef338d94700",
+    "/assets/img/attachments/4.png": "55e9f47a5d0fc03e7e7bf71d63e8e631b7847898",
+    "/assets/img/attachments/5.png": "44cc3c306fdf6644fb1f9e75a12e4e98a9553c44",
+    "/assets/img/avatars/noavatar.png": "ae2c13b74a0c84a110bbccd993577de47f21ed39",
+    "/assets/img/backgrounds/1.jpg": "beb3111a484ab6509abc51f4fc1929bd99b00ade",
+    "/assets/img/backgrounds/2.jpg": "6f5938df3487a83e4ae48fde3e665a976e502b23",
+    "/assets/img/backgrounds/3.jpg": "d4cd0b9203d4ee6bee4bdf2a882d8660b3cedc8d",
+    "/assets/img/backgrounds/4.png": "fbdfbc39b2beb457e9b32f0c46d0ec4210c63111",
+    "/assets/img/backgrounds/arch-pattern.png": "96fed875a0cefd8fa158e6a58b8a5b227c971382",
+    "/assets/img/backgrounds/calendar.jpg": "246d801e52f23cefe367b2e00c4ea354358de4eb",
+    "/assets/img/backgrounds/chat.png": "811ae3b0ab6735048c86501bb5cceb94bde16abf",
+    "/assets/img/backgrounds/drag-and-drop.jpg": "294727052025c8b2a9b77a2f84538cc7ed293196",
+    "/assets/img/backgrounds/editor.jpg": "02ebef6f90eb219160bfb7447d92bb202205d2c6",
+    "/assets/img/backgrounds/form-wizard.jpg": "e3c558fe953ed94b2106505cf3857f6b4c6e2613",
+    "/assets/img/backgrounds/inbox.png": "23603229ad14f3ca646677c2896052c5cc9e776a",
+    "/assets/img/logo.png": "e963b0b7591eae834c7d00efe616356666818370",
+    "/assets/img/logo_dark.png": "737f51ed070db219c3ea5163c2291a83be518783",
+    "/common.6969c33ef71d479ebd83.js": "86ca836ba4c2feae8c30a2f25513408131c6c30f",
+    "/favicon.ico": "f8d3f59b4737e9bd8b1e01799919066ed0788a96",
+    "/index.html": "133d3a0e6748dacf75b5ae2af7df9c631648b27e",
+    "/main.3c331d67c06827a291f2.js": "fdbc8b1f2882a942a9b0df05615f0d68cf1e10f3",
+    "/polyfills.31614ee4be9375c08084.js": "33f89604c78aeb120cd1d7a16f5b3a18c18a4db1",
+    "/runtime.46f5a599dfca6b96c170.js": "feef2ac3aabafc72458da56f31cad4a520451a2b",
+    "/styles.5eece72635a097fe2e12.css": "5c2d0ac42858c30ebd5dca362bf4f17a9c63a4a7"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^\\/]*\\.[^\\/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^\\/]*__[^\\/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^\\/]*__[^\\/]*\\/.*$"
+    }
+  ]
+}
