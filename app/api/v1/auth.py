@@ -10,7 +10,7 @@ from flask_jwt_extended import (
 )
 
 
-ACCESS_EXPIRES = timedelta(minutes=7)
+ACCESS_EXPIRES = timedelta(days=7)
 REFRESH_EXPIRES = timedelta(days=30)
 
 

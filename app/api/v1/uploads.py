@@ -31,8 +31,13 @@ def upload_email():
     if not f:
         return send_error(message='No file')
 
-    stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
-    csv_input = csv.reader(stream)
+    csv_input = list()
+    try:
+        stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
+        csv_input = csv.reader(stream)
+    except Exception as ex:
+        pass
+
     keys = ('email', 'password', 'recovery_email', 'date')
     new_email = 0
     error_email = 0

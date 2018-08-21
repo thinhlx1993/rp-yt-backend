@@ -247,7 +247,11 @@ def print_hello():
 
 @celery.task()
 def stat_report():
-    channel = client.db.channel.find_one({'status': 'active', 'reporting': False})
+    channels = client.db.channel.find({'status': 'active'})
+    channels = list(channels)
+    if len(channels) == 0:
+        return
+    channel = random.choice(channels)
     try:
         if channel is not None:
             client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': True}})
