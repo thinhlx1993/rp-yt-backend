@@ -149,6 +149,9 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
             if report_type.text == report_reason_2:
                 report_type.click()
 
+        WebDriverWait(browser, 30).until(
+            EC.presence_of_element_located((By.ID, "show-reported-user-info")))
+
         continue_btn = browser.find_element_by_id('show-reported-user-info')
         continue_btn.click()
 
