@@ -38,7 +38,6 @@ requests==2.18.4
 selenium==3.14.0
 six==1.11.0
 tzlocal==1.5.1
-urllib3==1.23
 vine==1.1.4
 webargs==1.8.1
 Werkzeug==0.12.2
