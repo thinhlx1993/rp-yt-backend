@@ -99,7 +99,7 @@ def login(browser, email, password, recovery_mail):
                 browser.execute_script("arguments[0].click();", next_btn)
 
         except Exception as ex:
-            print('No need to input recovery email', str(ex))
+            print('No need to input recovery email: {}'.format(str(ex)))
 
         try:
             # check protected account
@@ -108,28 +108,29 @@ def login(browser, email, password, recovery_mail):
                 done_btn = browser.find_element_by_class_name('CwaK9')
                 done_btn.click()
         except Exception as ex:
-            print('Can not submit', str(ex))
+            pass
 
-        ui.WebDriverWait(browser, 10).until(expected_conditions.url_matches('https://www.youtube.com/'))
+        ui.WebDriverWait(browser, 10).until(expected_conditions.url_matches('https://www.youtube.com'))
         print('Login success')
         return True
     except Exception as ex:
-        print('Login failed', str(ex))
+        print('Login failed: {}'.format(str(ex)))
         return False
 
 
 def submit_report(browser, report_channel, report_reason_1, report_reason_2, report_note):
+    browser.get(report_channel + '/videos')
+    sleep(5)
+    # check if channel die
     try:
-        # watch some videos
-        browser.get(report_channel + '/videos')
-        sleep(2)
-        try:
-            text = browser.find_element_by_css_selector('#container > yt-formatted-string')
-            if text.text == 'This account has been terminated for violating Google\'s Terms of Service.':
-                return '2'
-        except NoSuchElementException as ex:
-            print(ex)
+        text = browser.find_element_by_css_selector('#container > yt-formatted-string')
+        if text.text == 'This account has been terminated for violating Google\'s Terms of Service.':
+            return '2'
+    except NoSuchElementException as ex:
+        pass
 
+    # watch some videos
+    try:
         videos = browser.find_elements_by_id('video-title')
         video = random.choice(videos)
         href = video.get_attribute('href')
@@ -137,21 +138,28 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
 
         sleep(random.randint(0, 10))
 
-        for i in range(4):
+        for i in range(2):
             browser.execute_script("window.scrollTo(0, {})".format(random.randint(0, 1080)))
             sleep(1)
+    except Exception as ex:
+        print('we can not watch video: {}'.format(str(ex)))
+        return '0'
 
-        # Report this channel
+    # Report this channel
+    try:
         report_link = find_report_link(report_channel)
         browser.get(report_link)
-        sleep(5)
         change_language(browser)
+        WebDriverWait(browser, 30).until(
+            EC.presence_of_element_located((By.ID, "tab-start")))
         tab_start = browser.find_element_by_id('tab-start')
         report_types = tab_start.find_elements_by_css_selector('ul > li > div > label')
         for report_type in report_types:
             if report_type.text == report_reason_1:
                 report_type.click()
 
+        WebDriverWait(browser, 30).until(
+            EC.presence_of_element_located((By.ID, "tab-hate-speech")))
         tab_hate_speech = browser.find_element_by_id('tab-hate-speech')
         report_types = tab_hate_speech.find_elements_by_css_selector('ul > li > div > label')
         for report_type in report_types:
@@ -173,7 +181,7 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
         html.send_keys(Keys.END)
         return '1'
     except Exception as ex:
-        print('Submit report failed', str(ex))
+        print('Report channel failed: {}'.format(str(ex)))
         return '0'
 
 
@@ -189,7 +197,7 @@ def get_key_recaptcha(browser):
                 key = item[2:]
                 return key
     except Exception as ex:
-        print('Can not switch to recaptcha checkbox', str(ex))
+        print('Can not switch to recaptcha checkbox: {}'.format(str(ex)))
         return None
 
 
@@ -216,7 +224,7 @@ def key_resolver_captcha(api_key, api_url):
         else:
             print('Can not get key api 2captcha.com')
     except Exception as ex:
-        print('Exception: {}'.format(str(ex)))
+        print('Can not resolver captcha: {}'.format(str(ex)))
         return None
 
 
@@ -237,7 +245,7 @@ def change_language(browser):
         en_us_btn = browser.find_element_by_xpath('/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
         en_us_btn.click()
     except Exception as ex:
-        print('Can not change language', str(ex))
+        print('Can not change language: {}'.format(str(ex)))
 
 
 @celery.task()
@@ -266,6 +274,7 @@ def stat_report():
                 if len(tmp_emails) == 0:
                     client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
                     return
+
                 tmp_email = random.choice(tmp_emails)
                 email = tmp_email['email']
                 password = tmp_email['password']
@@ -275,9 +284,10 @@ def stat_report():
                 try:
                     browser = create_browser()
                 except Exception as ex:
-                    print(str(ex))
+                    print('Can not start browser: {}'.format(str(ex)))
                     client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
                     return
+
                 login_status = login(browser, email, password, recovery_email)
                 if login_status:
                     # report three times
@@ -316,13 +326,11 @@ def stat_report():
                                         client.db.channel.update({'_id': channel['_id']},
                                                                  {'$inc': {'count_success': 1}})
                                 except Exception as ex:
-                                    print(str(ex))
+                                    print('Submit report failed: {}'.format(str(ex)))
                                     client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
+
                             else:
                                 client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
-
-                        elif submit_report_status == '0':
-                            print('Cant not submit report')
 
                         elif submit_report_status == '2':
                             print('Channel suspended save to database')
