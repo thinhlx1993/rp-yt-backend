@@ -162,7 +162,7 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
             EC.presence_of_element_located((By.ID, "show-reported-user-info")))
 
         continue_btn = browser.find_element_by_id('show-reported-user-info')
-        continue_btn.click()
+        browser.execute_script("arguments[0].click();", continue_btn)
 
         ui.WebDriverWait(browser, 10).until(
             element_has_css_class((By.TAG_NAME, 'textarea'), "yt-uix-form-input-textarea"))
