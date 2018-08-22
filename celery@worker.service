@@ -1,0 +1,12 @@
+[Unit]
+Description=serve newsfeed
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+WorkingDirectory=/opt/rp-yt-backend
+ExecStart=/bin/bash /opt/rp-yt-backend/start.sh
+
+[Install]
+WantedBy=multi-user.target
