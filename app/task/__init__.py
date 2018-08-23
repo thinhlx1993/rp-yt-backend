@@ -1,5 +1,5 @@
 # coding=utf-8
-from app.extensions import celery, mail, client
+from app.extensions import celery, client
 import random
 import requests
 from time import sleep
@@ -17,49 +17,35 @@ from app.task.custom_conditions import element_has_css_class
 from app.task.solve_recaptcha import write_stat, check_exists_by_xpath, wait_between, dimention, solve_images
 from app.utils import find_report_link, watch_videos
 
-# geckodriver = 'etc//geckodriver-v0.21.0-win64/geckodriver.exe'
-# binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
-geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
-binary = '/usr/bin/firefox'
+geckodriver = 'etc//geckodriver-v0.21.0-win64/geckodriver.exe'
+binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
+# geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
+# binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
-PROXY_HOST = ['93.155.250.92', '94.130.126.115', '85.109.124.130', '82.148.172.162']
-PROXY_PORT = '8080'
 capabilities = DesiredCapabilities.FIREFOX.copy()
 capabilities['marionette'] = True
 capabilities['acceptSslCerts'] = True
+profile = webdriver.FirefoxProfile()
+profile.set_preference("browser.privatebrowsing.autostart", True)
+profile.set_preference("browser.cache.disk.enable", False)
+profile.set_preference("browser.cache.memory.enable", False)
+profile.set_preference("browser.cache.offline.enable", False)
+profile.set_preference("network.http.use-cache", False)
+profile.set_preference("media.volume_scale", "0.0")
+options = webdriver.FirefoxOptions()
+# options.add_argument('-headless')
+browser = webdriver.Firefox(
+    executable_path=geckodriver,
+    firefox_options=options,
+    capabilities=capabilities,
+    firefox_binary=binary,
+    firefox_profile=profile)
+browser.set_window_size(1920, 1080)
+browser.set_window_position(0, 0)
+login_status = False
 
 
-def create_browser():
-    profile = webdriver.FirefoxProfile()
-    profile.set_preference("browser.privatebrowsing.autostart", True)
-    profile.set_preference("browser.cache.disk.enable", False)
-    profile.set_preference("browser.cache.memory.enable", False)
-    profile.set_preference("browser.cache.offline.enable", False)
-    profile.set_preference("network.http.use-cache", False)
-    profile.set_preference("media.volume_scale", "0.0")
-    # profile.set_preference("network.proxy.type", 1)
-    # profile.set_preference("network.proxy.share_proxy_settings", True)
-    # profile.set_preference("network.http.use-cache", False)
-    # profile.set_preference("network.proxy.http", random.choice(PROXY_HOST))
-    # profile.set_preference("network.proxy.http_port", int(PROXY_PORT))
-    # profile.set_preference('network.proxy.ssl', random.choice(PROXY_HOST))
-    # profile.set_preference('network.proxy.ssl_port', int(PROXY_PORT))
-    # profile.set_preference('network.proxy.socks', random.choice(PROXY_HOST))
-    # profile.set_preference('network.proxy.socks_port', int(PROXY_PORT))
-    options = webdriver.FirefoxOptions()
-    options.add_argument('-headless')
-    browser = webdriver.Firefox(
-        executable_path=geckodriver,
-        firefox_options=options,
-        capabilities=capabilities,
-        firefox_binary=binary,
-        firefox_profile=profile)
-    browser.set_window_size(1920, 1080)
-    browser.set_window_position(0, 0)
-    return browser
-
-
-def login(browser, email, password, recovery_mail):
+def login(email, password, recovery_email):
     try:
         browser.get('https://www.youtube.com/')
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "ytd-button-renderer.style-scope:nth-child(5) > a:nth-child(1)")))
@@ -89,12 +75,18 @@ def login(browser, email, password, recovery_mail):
             header = browser.find_element_by_id('headingText')
             if header and header.text == 'Verify it\'s you':
                 print('Need to input recovery email')
-                # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "vdE7Oc")))
                 browser.find_element_by_class_name('vdE7Oc').click()
-                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "knowledge-preregistered-email-response")))
-                recovery_email = browser.find_element_by_id('knowledge-preregistered-email-response')
-                # browser.execute_script("arguments[0].value = '{}'".format(recovery_mail), recovery_email)
-                recovery_email.send_keys(recovery_mail)
+                sleep(2)
+                # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "knowledge-preregistered-email-response")))
+                while True:
+                    try:
+                        recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
+                        recovery_inp.click()
+                        recovery_inp.send_keys(recovery_email)
+                        break
+                    except:
+                        print('Input recovery email')
+
                 next_btn = browser.find_element_by_id('next')
                 browser.execute_script("arguments[0].click();", next_btn)
 
@@ -118,7 +110,7 @@ def login(browser, email, password, recovery_mail):
         return False
 
 
-def submit_report(browser, report_channel, report_reason_1, report_reason_2, report_note):
+def submit_report(report_channel, report_reason_1, report_reason_2, report_note):
     browser.get(report_channel + '/videos')
     sleep(5)
     # check if channel die
@@ -149,7 +141,7 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
     try:
         report_link = find_report_link(report_channel)
         browser.get(report_link)
-        change_language(browser)
+        change_language()
         WebDriverWait(browser, 30).until(
             EC.presence_of_element_located((By.ID, "tab-start")))
         tab_start = browser.find_element_by_id('tab-start')
@@ -185,7 +177,7 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
         return '0'
 
 
-def get_key_recaptcha(browser):
+def get_key_recaptcha():
     try:
         browser.switch_to.default_content()
         iframe_switch = browser.find_element(By.XPATH,
@@ -201,7 +193,7 @@ def get_key_recaptcha(browser):
         return None
 
 
-def key_resolver_captcha(api_key, api_url):
+def key_resolver_captcha(api_url):
     try:
         r = requests.get(api_url)
         res = r.text
@@ -228,9 +220,10 @@ def key_resolver_captcha(api_key, api_url):
         return None
 
 
-def change_language(browser):
+def change_language():
     try:
         lang_btn = browser.find_element_by_id('yt-picker-language-button')
+        lang_btn.click()
         lang_btn.click()
         sleep(2)
         # vi_btn = browser.find_elements_by_css_selector('div.yt-picker-grid:nth-child(5) > button:nth-child(2)')
@@ -249,11 +242,27 @@ def print_hello():
 
 @celery.task()
 def stat_report():
+    global login_status
     channels = client.db.channel.find({'status': 'active'})
     channels = list(channels)
     if len(channels) == 0:
         return
     channel = random.choice(channels)
+
+    while not login_status:
+        tmp_emails = client.db.email.find({'status': True})
+        tmp_emails = list(tmp_emails)
+        tmp_email = random.choice(tmp_emails)
+        email = tmp_email['email']
+        password = tmp_email['password']
+        recovery_email = tmp_email['recovery_email']
+        login_status = login(email, password, recovery_email)
+        if login_status:
+            print('Logged in to youtube')
+        else:
+            print('{} can not login to youtube'.format(email))
+            client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+
     try:
         if channel is not None:
             client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': True}})
@@ -263,82 +272,58 @@ def stat_report():
                 report_reason_1 = strategy['issue']
                 report_reason_2 = strategy['sub_issue']
                 report_note = strategy['note']
-                tmp_emails = client.db.email.find({'status': True})
-                tmp_emails = list(tmp_emails)
-                if len(tmp_emails) == 0:
-                    client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
-                    return
-
-                tmp_email = random.choice(tmp_emails)
-                email = tmp_email['email']
-                password = tmp_email['password']
-                recovery_email = tmp_email['recovery_email']
-                tmp_emails = None
                 report_channel = channel['channel']
-                try:
-                    browser = create_browser()
-                except Exception as ex:
-                    print('Can not start browser: {}'.format(str(ex)))
-                    client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
-                    return
 
-                login_status = login(browser, email, password, recovery_email)
-                if login_status:
-                    # report three times
-                    for i in range(3):
-                        submit_report_status = submit_report(
-                            browser, report_channel,
-                            report_reason_1, report_reason_2,
-                            report_note)
+                # report three times
+                for i in range(3):
+                    submit_report_status = submit_report(
+                        report_channel,
+                        report_reason_1, report_reason_2,
+                        report_note)
 
-                        if submit_report_status == '1':
-                            google_key = get_key_recaptcha(browser)
-                            if google_key is None:
-                                client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
+                    if submit_report_status == '1':
+                        google_key = get_key_recaptcha()
+                        if google_key is None:
+                            client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
-                            current_url = browser.current_url
-                            captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
-                                api_key, google_key, current_url)
-                            key_resolver = key_resolver_captcha(api_key, captcha_resolver_api)
-                            if key_resolver is not None:
+                        current_url = browser.current_url
+                        captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
+                            api_key, google_key, current_url)
+                        key_resolver = key_resolver_captcha(captcha_resolver_api)
+                        if key_resolver is not None:
 
-                                browser.switch_to.default_content()
+                            browser.switch_to.default_content()
+                            WebDriverWait(browser, 30).until(
+                                EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
+                            browser.execute_script(
+                                "document.getElementById('g-recaptcha-response').style.display = 'block';")
+                            textarea_box = browser.find_element_by_id('g-recaptcha-response')
+                            textarea_box.send_keys(key_resolver)
+                            submit_report_btn = browser.find_element_by_id('submit-report')
+                            submit_report_btn.click()
+                            try:
                                 WebDriverWait(browser, 30).until(
-                                    EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
-                                browser.execute_script(
-                                    "document.getElementById('g-recaptcha-response').style.display = 'block';")
-                                textarea_box = browser.find_element_by_id('g-recaptcha-response')
-                                textarea_box.send_keys(key_resolver)
-                                submit_report_btn = browser.find_element_by_id('submit-report')
-                                submit_report_btn.click()
-                                try:
-                                    WebDriverWait(browser, 30).until(
-                                        EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
-                                    section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
-                                    if section and section.text == 'Thank You.':
-                                        print('Submit report successfully')
-                                        client.db.channel.update({'_id': channel['_id']},
-                                                                 {'$inc': {'count_success': 1}})
-                                except Exception as ex:
-                                    print('Submit report failed: {}'.format(str(ex)))
-                                    client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
-
-                            else:
+                                    EC.presence_of_element_located((By.CSS_SELECTOR, ".section > p:nth-child(1)")))
+                                section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
+                                if section and section.text == 'Thank You.':
+                                    print('Submit report successfully')
+                                    client.db.channel.update({'_id': channel['_id']},
+                                                             {'$inc': {'count_success': 1}})
+                            except Exception as ex:
+                                print('Submit report failed: {}'.format(str(ex)))
                                 client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
-                        elif submit_report_status == '2':
-                            print('Channel suspended save to database')
-                            client.db.channel.update({'_id': channel['_id']}, {'$set': {'status': 'Suspended'}})
-                            return
+                        else:
+                            client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
-                    client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
-                    browser.quit()
-                else:
-                    print('{} can not login to youtube'.format(email))
-                    client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
-                    # mark as done reporting
-                    client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
-                    browser.quit()
+                    elif submit_report_status == '2':
+                        print('Channel suspended save to database')
+                        client.db.channel.update({'_id': channel['_id']}, {'$set': {'status': 'Suspended'}})
+                        return
+
+                client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
+                browser.quit()
+
     except Exception as ex:
         client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
         print('Exception: {}'.format(str(ex)))
