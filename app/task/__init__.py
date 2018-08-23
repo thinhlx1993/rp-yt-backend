@@ -237,12 +237,12 @@ def change_language(browser):
             EC.presence_of_element_located((By.CLASS_NAME, "yt-picker-item")))
 
         current_lang = browser.find_element_by_class_name('yt-picker-item')
-        if current_lang.text == 'English (US)':
-            return
 
+        sleep(2)
         # vi_btn = browser.find_elements_by_css_selector('div.yt-picker-grid:nth-child(5) > button:nth-child(2)')
         # vi_btn.click()
-        en_us_btn = browser.find_element_by_xpath('/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
+        en_us_btn = browser.find_element_by_xpath(
+            '/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
         en_us_btn.click()
     except Exception as ex:
         print('Can not change language: {}'.format(str(ex)))
