@@ -112,6 +112,8 @@ def create_channel():
     channel['create_date'] = int(time.time())
     channel['status'] = 'active'
     channel['reporting'] = False
+    channel['count_success'] = 0
+    channel['count_fail'] = 0
     client.db.channel.insert_one(channel)
     return send_result(message='Tạo kênh mới thành công.')
 
