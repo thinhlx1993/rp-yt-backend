@@ -1,24 +1,11 @@
 import io
 import csv
-import time
-import datetime
+import pandas as pd
 from flask import Blueprint, request
-from bson import ObjectId
-from flask_jwt_extended import jwt_required
-from marshmallow import fields
-from datetime import timedelta
 from app.extensions import client
-from werkzeug.security import generate_password_hash
 from app.utils import send_result, parse_req, send_error, FieldString
 
-ACCESS_EXPIRES = timedelta(minutes=15)
-REFRESH_EXPIRES = timedelta(days=1)
-
 api = Blueprint('uploads', __name__)
-
-
-def transform(text_file_contents):
-    return text_file_contents.replace("=", ",")
 
 
 @api.route('/email', methods=['POST'])
@@ -33,21 +20,28 @@ def upload_email():
 
     csv_input = list()
     try:
-        stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
-        csv_input = csv.reader(stream)
+        data_xls = pd.read_excel(f)
+        # stream = io.StringIO(f.stream.read().decode("UTF8"), newline=None)
+        # csv_input = csv.reader(stream)
     except Exception as ex:
-        pass
+        return send_error(message=str(ex))
 
     keys = ('email', 'password', 'recovery_email', 'date')
     new_email = 0
     error_email = 0
-    for row in csv_input:
-        email = dict()
-        for index, key in enumerate(keys):
-            email[key] = row[index]
+    for index, row in data_xls.iterrows():
+        email = dict(
+            email='',
+            password='',
+            recovery_email='',
+            date=''
+        )
+        for key_index, key in enumerate(keys):
+            if key in row.keys():
+                email[key] = row[key]
 
         email_exist = client.db.email.find_one({'email': email['email']})
-        if not email_exist:
+        if not email_exist and email['email'] != '':
             new_email += 1
             email['status'] = True
             client.db.email.insert_one(email)
