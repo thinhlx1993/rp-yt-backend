@@ -17,10 +17,10 @@ from app.task.custom_conditions import element_has_css_class
 from app.task.solve_recaptcha import write_stat, check_exists_by_xpath, wait_between, dimention, solve_images
 from app.utils import find_report_link, watch_videos
 
-geckodriver = 'etc//geckodriver-v0.21.0-win64/geckodriver.exe'
-binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
-# geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
-# binary = '/usr/bin/firefox'
+# geckodriver = 'etc//geckodriver-v0.21.0-win64/geckodriver.exe'
+# binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
+geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
+binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
 capabilities = DesiredCapabilities.FIREFOX.copy()
 capabilities['marionette'] = True
@@ -33,7 +33,7 @@ profile.set_preference("browser.cache.offline.enable", False)
 profile.set_preference("network.http.use-cache", False)
 profile.set_preference("media.volume_scale", "0.0")
 options = webdriver.FirefoxOptions()
-# options.add_argument('-headless')
+options.add_argument('-headless')
 browser = webdriver.Firefox(
     executable_path=geckodriver,
     firefox_options=options,
@@ -322,7 +322,6 @@ def stat_report():
                         return
 
                 client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
-                browser.quit()
 
     except Exception as ex:
         client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
