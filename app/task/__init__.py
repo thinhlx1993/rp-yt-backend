@@ -341,7 +341,7 @@ def stat_report():
                     browser.quit()
                 else:
                     print('{} can not login to youtube'.format(email))
-                    # client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+                    client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
                     # mark as done reporting
                     client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
                     browser.quit()
