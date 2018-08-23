@@ -232,12 +232,6 @@ def change_language(browser):
     try:
         lang_btn = browser.find_element_by_id('yt-picker-language-button')
         lang_btn.click()
-
-        WebDriverWait(browser, 30).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "yt-picker-item")))
-
-        current_lang = browser.find_element_by_class_name('yt-picker-item')
-
         sleep(2)
         # vi_btn = browser.find_elements_by_css_selector('div.yt-picker-grid:nth-child(5) > button:nth-child(2)')
         # vi_btn.click()
