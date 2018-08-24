@@ -246,12 +246,16 @@ def stat_report():
     channels = client.db.channel.find({'status': 'active'})
     channels = list(channels)
     if len(channels) == 0:
+        print('Channel list is empty')
         return
     channel = random.choice(channels)
 
     while not login_status:
         tmp_emails = client.db.email.find({'status': True})
         tmp_emails = list(tmp_emails)
+        if len(tmp_emails) == 0:
+            print('Can not find any email')
+            return
         tmp_email = random.choice(tmp_emails)
         email = tmp_email['email']
         password = tmp_email['password']
