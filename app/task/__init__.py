@@ -1,5 +1,5 @@
 # coding=utf-8
-from app.extensions import celery, client
+import sys
 import random
 import requests
 from time import sleep
@@ -16,11 +16,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from app.task.custom_conditions import element_has_css_class
 from app.task.solve_recaptcha import write_stat, check_exists_by_xpath, wait_between, dimention, solve_images
 from app.utils import find_report_link, watch_videos
+from app.extensions import celery, client
 
-# geckodriver = 'etc//geckodriver-v0.21.0-win64/geckodriver.exe'
-# binary = 'C:\\Program Files\\Mozilla Firefox\\firefox.exe'
-geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
-binary = '/usr/bin/firefox'
 api_key = '094c2420f179731334edccbf176dbd79'
 capabilities = DesiredCapabilities.FIREFOX.copy()
 capabilities['marionette'] = True
@@ -33,7 +30,16 @@ profile.set_preference("browser.cache.offline.enable", False)
 profile.set_preference("network.http.use-cache", False)
 profile.set_preference("media.volume_scale", "0.0")
 options = webdriver.FirefoxOptions()
-options.add_argument('-headless')
+
+print(sys.platform)
+if sys.platform == 'win32':
+    geckodriver = 'etc/geckodriver-v0.21.0-win64/geckodriver.exe'
+    binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
+else:
+    geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
+    binary = '/usr/bin/firefox'
+    options.add_argument('-headless')
+
 browser = webdriver.Firefox(
     executable_path=geckodriver,
     firefox_options=options,
@@ -222,15 +228,18 @@ def key_resolver_captcha(api_url):
 
 def change_language():
     try:
-        lang_btn = browser.find_element_by_id('yt-picker-language-button')
-        lang_btn.click()
-        lang_btn.click()
-        sleep(2)
-        # vi_btn = browser.find_elements_by_css_selector('div.yt-picker-grid:nth-child(5) > button:nth-child(2)')
-        # vi_btn.click()
-        en_us_btn = browser.find_element_by_xpath(
-            '/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
-        en_us_btn.click()
+        while True:
+            try:
+                lang_btn = browser.find_element_by_id('yt-picker-language-button')
+                lang_btn.click()
+                sleep(5)
+                en_us_btn = browser.find_element_by_xpath(
+                    '/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
+                en_us_btn.click()
+                break
+            except Exception as ex:
+                pass
+
     except Exception as ex:
         print('Can not change language: {}'.format(str(ex)))
 
