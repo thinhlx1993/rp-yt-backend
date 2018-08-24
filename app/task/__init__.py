@@ -95,6 +95,10 @@ def login(email, password, recovery_email):
 
                 next_btn = browser.find_element_by_id('next')
                 browser.execute_script("arguments[0].click();", next_btn)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "headingText")))
+            header = browser.find_element_by_id('headingText')
+            if header and header.text == 'Account Disabled':
+                return 'disabled'
 
         except Exception as ex:
             print('No need to input recovery email: {}'.format(str(ex)))
@@ -110,10 +114,10 @@ def login(email, password, recovery_email):
 
         ui.WebDriverWait(browser, 10).until(expected_conditions.url_matches('https://www.youtube.com'))
         print('Login success')
-        return True
+        return 'success'
     except Exception as ex:
         print('Login failed: {}'.format(str(ex)))
-        return False
+        return 'fail'
 
 
 def submit_report(report_channel, report_reason_1, report_reason_2, report_note):
@@ -241,12 +245,17 @@ def change_language():
                 lang_btn = browser.find_element_by_id('yt-picker-language-button')
                 lang_btn.click()
                 sleep(5)
-                en_us_btn = browser.find_element_by_xpath(
-                    '/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
-                en_us_btn.click()
+                # en_us_btn = browser.find_element_by_xpath(
+                #     '/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
+                # en_us_btn.click()
+                langs = browser.find_elements_by_css_selector('.yt-picker-item > span')
+                for lang in langs:
+                    if 'English' in lang.text:
+                        lang.click()
+                        return
                 break
             except Exception as ex:
-                pass
+                print('Change lang failed: {}'.format(str(ex)))
 
     except Exception as ex:
         print('Can not change language: {}'.format(str(ex)))
@@ -278,10 +287,12 @@ def stat_report():
         password = tmp_email['password']
         recovery_email = tmp_email['recovery_email']
         login_status = login(email, password, recovery_email)
-        if login_status:
+        if login_status == 'success':
             print('Logged in to youtube')
-        else:
+        elif login_status == 'fail':
             print('{} can not login to youtube'.format(email))
+        elif login_status == 'disabled':
+            print('{} is disabled'.format(email))
             client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
 
     try:
