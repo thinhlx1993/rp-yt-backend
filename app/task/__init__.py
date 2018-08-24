@@ -175,6 +175,14 @@ def submit_report(report_channel, report_reason_1, report_reason_2, report_note)
         notes = browser.find_element_by_class_name('yt-uix-form-input-textarea')
         notes.send_keys(report_note)
 
+        try:
+            videos_reports = browser.find_elements_by_css_selector('.yt-uix-form-input-checkbox.report-video-checkbox')
+            for i in range(4):
+                video_report = random.choice(videos_reports)
+                video_report.click()
+        except Exception as ex:
+            print('Can not check to video report: {}'.format(str(ex)))
+
         html = browser.find_element_by_tag_name('html')
         html.send_keys(Keys.END)
         return '1'
