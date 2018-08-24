@@ -3,10 +3,8 @@ from flask import Blueprint, request
 from bson import ObjectId
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
-from celery.result import ResultBase
 from app.extensions import client
 from app.utils import send_result, parse_req, send_error, FieldString
-from app.task import stat_report
 
 api = Blueprint('channel', __name__)
 
@@ -35,7 +33,8 @@ def get_channel():
         item['_id'] = str(item['_id'])
         strategy = client.db.strategy.find_one({'_id': ObjectId(item['strategy'])})
         if strategy is not None:
-            item['strategy'] = strategy['name']
+            strategy['_id'] = str(strategy['_id'])
+            item['strategy'] = strategy
 
     return_data = dict(
         rows=data,
@@ -56,6 +55,7 @@ def update_channel():
         'name': FieldString(),
         'channel': FieldString(),
         'strategy': FieldString(),
+        'status': FieldString(),
     }
 
     try:
@@ -68,7 +68,7 @@ def update_channel():
     if channel is None:
         return send_error(message='Not found')
 
-    keys = ('name', 'channel', 'strategy')
+    keys = ('name', 'channel', 'strategy', 'status')
 
     for k in keys:
         v = json_data.get(k, None)
@@ -89,6 +89,7 @@ def create_channel():
         'name': FieldString(),
         'channel': FieldString(),
         'strategy': FieldString(),
+        'status': FieldString(),
     }
 
     try:
@@ -101,7 +102,7 @@ def create_channel():
     if channel is not None:
         return send_error(message='Duplicate channel')
 
-    keys = ('name', 'channel', 'strategy')
+    keys = ('name', 'channel', 'strategy', 'status')
 
     channel = dict()
     for k in keys:
