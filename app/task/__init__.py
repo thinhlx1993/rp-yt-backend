@@ -69,7 +69,7 @@ def login(email, password, recovery_email):
         if heading_text.text == 'Welcome':
             print(heading_text.text)
         elif heading_text.text == 'Account disabled':
-            return False
+            return 'disabled'
 
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.whsOnd.zHQkBf")))
         password_inp = browser.find_element_by_css_selector('input.whsOnd.zHQkBf')
@@ -220,15 +220,18 @@ def key_resolver_captcha(api_url):
             resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
             print(resolver_api)
             while True:
-                response = requests.get(resolver_api)
-                response = response.text
-                if 'OK' in response:
-                    response_key = response[3:]
+                try:
+                    response = requests.get(resolver_api)
+                    response = response.text
+                    if 'OK' in response:
+                        response_key = response[3:]
+                        break
+                    if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
+                        response_key = None
+                        break
                     sleep(5)
-                    break
-                if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
-                    response_key = None
-                    break
+                except Exception as ex:
+                    print('Get response error: {}'. format(str(ex)))
 
             return response_key
         else:
@@ -294,6 +297,7 @@ def stat_report():
         elif login_status == 'disabled':
             print('{} is disabled'.format(email))
             client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+            return
 
     try:
         if channel is not None:
