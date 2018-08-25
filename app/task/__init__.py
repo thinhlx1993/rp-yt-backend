@@ -102,6 +102,7 @@ def login(email, password, recovery_email):
 
         except Exception as ex:
             print('No need to input recovery email: {}'.format(str(ex)))
+            return 'fail'
 
         try:
             # check protected account
@@ -294,6 +295,7 @@ def stat_report():
             print('Logged in to youtube')
         elif login_status == 'fail':
             print('{} can not login to youtube'.format(email))
+            return
         elif login_status == 'disabled':
             print('{} is disabled'.format(email))
             client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
