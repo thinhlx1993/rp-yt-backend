@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
-import logging
 import os
+import sys
+import logging
+import threading
 import traceback
 from time import strftime
 from flask import Flask, request
-
+from app.ui import Window
 from app.api import v1 as api_v1
 from app.extensions import jwt, client, app_log_handler, celery
-from .settings import ProdConfig
+from app.settings import ProdConfig
+from PyQt5.QtWidgets import (QApplication, QMessageBox, QSystemTrayIcon)
 
 
 def create_app(config_object=ProdConfig):
@@ -21,7 +24,28 @@ def create_app(config_object=ProdConfig):
     app.config.from_object(config_object)
     register_extensions(app)
     register_blueprints(app)
+    register_sys_tray()
     return app
+
+
+def create_sys_tray():
+    main_app = QApplication(sys.argv)
+
+    if not QSystemTrayIcon.isSystemTrayAvailable():
+        QMessageBox.critical(None, "Systray", "I couldn't detect any system tray on this system.")
+        sys.exit(1)
+
+    QApplication.setQuitOnLastWindowClosed(False)
+
+    window = Window()
+    window.show()
+    sys.exit(main_app.exec_())
+
+
+def register_sys_tray():
+    system_tray = threading.Thread(target=create_sys_tray)
+    system_tray.daemon = True
+    system_tray.start()
 
 
 def register_extensions(app):
