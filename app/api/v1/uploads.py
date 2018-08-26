@@ -1,9 +1,7 @@
-import io
-import csv
 import pandas as pd
 from flask import Blueprint, request
 from app.extensions import client
-from app.utils import send_result, parse_req, send_error, FieldString
+from app.utils import send_result, send_error
 
 api = Blueprint('uploads', __name__)
 

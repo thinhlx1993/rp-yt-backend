@@ -83,7 +83,6 @@ def login(email, password, recovery_email):
                 print('Need to input recovery email')
                 browser.find_element_by_class_name('vdE7Oc').click()
                 sleep(2)
-                # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "knowledge-preregistered-email-response")))
                 while True:
                     try:
                         recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
@@ -358,7 +357,6 @@ def stat_report():
                         print('Channel suspended save to database')
                         client.db.channel.update({'_id': channel['_id']}, {'$set': {'status': 'Suspended'}})
                         return
-
                 client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
 
     except Exception as ex:

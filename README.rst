@@ -71,3 +71,5 @@ Starting server dev
     $ celery -A app.celery.celery worker --loglevel=info run celery server using for send email register, verify vv.v..
     $ celery beat -A app.celery --schedule=tmp/celerybeat-schedule --loglevel=INFO --pidfile=tmp/celerybeat.pid
     $ celery worker -A app.celery --pool=solo --loglevel=INFO
+    $ pyinstaller --add-data "app/template;app/template" --add-data "etc;etc" --add-data "logs;logs" --hidden-import "PyQt5.sip" --hidden-import "celery.fixups" --hidden-import "celery.fixups.django" --hidden-import "pandas._l
+ibs.tslibs.np_datetime" --hidden-import "pandas._libs.tslibs.nattype" --hidden-import "pandas._libs.skiplist" manage.py -y

@@ -3,9 +3,8 @@ from celery import Celery
 from app.settings import *
 from app.app import create_app
 from app.task import stat_report
-from celery.schedules import crontab
 
-CONFIG = DevConfig
+CONFIG = DevConfig if os.environ.get('FLASK_DEBUG') == '1' else ProdConfig
 
 
 def make_celery(app):
@@ -33,7 +32,7 @@ def make_celery(app):
     return celery
 
 
-celery = make_celery(app=create_app(CONFIG))
+celery = make_celery(app=create_app(config_object=CONFIG, name='celery'))
 
 
 @celery.on_after_configure.connect

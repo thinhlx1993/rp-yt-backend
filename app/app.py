@@ -13,7 +13,7 @@ from app.settings import ProdConfig
 from PyQt5.QtWidgets import (QApplication, QMessageBox, QSystemTrayIcon)
 
 
-def create_app(config_object=ProdConfig):
+def create_app(config_object=ProdConfig, name='server'):
     """
     Init App
     :param config_object:
@@ -23,8 +23,9 @@ def create_app(config_object=ProdConfig):
     app = Flask(__name__, static_url_path="", static_folder="./template", template_folder="./template")
     app.config.from_object(config_object)
     register_extensions(app)
-    register_blueprints(app)
-    register_sys_tray()
+    if name == 'server':
+        register_blueprints(app)
+        register_sys_tray()
     return app
 
 
