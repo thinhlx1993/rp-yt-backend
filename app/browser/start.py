@@ -73,7 +73,8 @@ def get_urls_from_google(keyword, browser):
             browser.back()
 
 
-def get_urls_from_youtube(keyword, browser):
+def get_urls_from_youtube(views_channel, browser, db):
+    keyword = views_channel['keyword']
     browser.get('https://www.youtube.com/results?search_query={}'.format(keyword))
     time.sleep(2)
     items = browser.find_elements_by_tag_name('a')
@@ -94,6 +95,8 @@ def get_urls_from_youtube(keyword, browser):
 #                 player.click()
 #         except Exception as ex:
 #             print('Can not start video')
+        db.views.update({'_id': views_channel['_id']},
+                        {'$inc': {'count': 1}})
         time.sleep(random.randint(5, 50))
         browser.back()
     logging.info("Quit browser")
@@ -117,10 +120,9 @@ def watch_video():
     browser.maximize_window()
     browser.get('https://youtube.com')
     views_channel_totals = db.views.count({'status': 'active'})
-    views_channel = db.agents.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
+    views_channel = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
     if views_channel:
-        keyword = views_channel['keyword']
-        get_urls_from_youtube(keyword, browser)
+        get_urls_from_youtube(views_channel, browser, db)
     else:
         logging.info("Not found channel")
 
