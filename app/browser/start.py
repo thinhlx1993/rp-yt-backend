@@ -86,7 +86,7 @@ def get_urls_from_youtube(views_channel, browser, db):
         href = item.get_attribute('href')
         if href and 'watch' in href:
             videos.append(href)
-    logging.info("videos: ".format(len(videos)))
+    logging.info("videos: {}".format(len(videos)))
     while index < len(videos):
         browser.get(videos[index])
         index += 1
