@@ -86,7 +86,7 @@ def get_urls_from_youtube(views_channel, browser, db):
         href = item.get_attribute('href')
         if href and 'watch' in href:
             videos.append(href)
-    print(len(videos))
+    logging.info("videos: ".format(len(videos)))
     while index < len(videos):
         browser.get(videos[index])
         index += 1
@@ -115,7 +115,7 @@ def watch_video():
     db = create_pymongo()
     totals = db.agents.count({'status': True})
     agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals)).next()
-    print(agent['name'])
+    logging.info(agent['name'])
     browser = create_browser(agent)
     browser.set_window_size(1920, 1080)
     browser.set_window_position(0, 0)
@@ -123,7 +123,7 @@ def watch_video():
     browser.get('https://youtube.com')
     views_channel_totals = db.views.count({'status': 'active'})
     views_channel = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
-    print(views_channel['keyword'])
+    logging.info(views_channel['keyword'])
     if views_channel:
         get_urls_from_youtube(views_channel, browser, db)
     else:
