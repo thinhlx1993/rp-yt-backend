@@ -125,8 +125,11 @@ def watch_video():
     browser.maximize_window()
     browser.get('https://youtube.com')
     views_channel_totals = db.views.count({'status': 'active'})
-    cursor = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
-    views_channel = cursor.next()
+    if views_channel_totals == 1:
+        views_channel = db.views.find_one({'status': 'active'})
+    else:
+        cursor = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
+        views_channel = cursor.next()
     cursor.close()
     logging.info(views_channel['keyword'])
     if views_channel:
