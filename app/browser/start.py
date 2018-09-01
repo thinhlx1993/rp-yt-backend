@@ -115,7 +115,9 @@ def watch_video():
     client = create_pymongo()
     db = client['test-yt']
     totals = db.agents.count({'status': True})
-    agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals)).next()
+    cursor = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals))
+    agent = cursor.next()
+    cursor.close()
     logging.info(agent['name'])
     browser = create_browser(agent)
     browser.set_window_size(1920, 1080)
@@ -123,7 +125,9 @@ def watch_video():
     browser.maximize_window()
     browser.get('https://youtube.com')
     views_channel_totals = db.views.count({'status': 'active'})
-    views_channel = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
+    cursor = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
+    views_channel = cursor.next()
+    cursor.close()
     logging.info(views_channel['keyword'])
     if views_channel:
         get_urls_from_youtube(views_channel, browser, db)
