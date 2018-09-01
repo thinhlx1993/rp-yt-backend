@@ -147,4 +147,3 @@ if __name__ == "__main__":
             watch_video()
             print('Exception: {}'.format(str(ex)))
             logging.info("Exception: {}".format(str(ex)))
-            break
