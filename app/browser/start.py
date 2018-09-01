@@ -107,6 +107,7 @@ def get_urls_from_youtube(views_channel, browser, db):
 def fake_ip():
     subprocess.call(['sudo', 'killall', 'firefox'])
     subprocess.call(['sudo', 'service', 'fakeip', 'restart'])
+    time.sleep(10)
 
 
 def watch_video():
@@ -121,9 +122,8 @@ def watch_video():
     browser.maximize_window()
     browser.get('https://youtube.com')
     views_channel_totals = db.views.count({'status': 'active'})
-    print(views_channel_totals)
     views_channel = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
-    print(views_channel)
+    print(views_channel['keyword'])
     if views_channel:
         get_urls_from_youtube(views_channel, browser, db)
     else:
