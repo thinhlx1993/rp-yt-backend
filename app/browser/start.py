@@ -14,13 +14,11 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s:%(levelname)s:%(message)s")
 
 
-def create_pymongo():
-    client = MongoClient("167.99.145.231",
-                         username="admin",
-                         password="1234567a@",
-                         authSource="admin")
-    db = client['test-yt']
-    return db
+client = MongoClient("167.99.145.231",
+                     username="admin",
+                     password="1234567a@",
+                     authSource="admin")
+db = client['test-yt']
 
 
 def create_browser(user_agent):
@@ -73,7 +71,7 @@ def get_urls_from_google(keyword, browser):
             browser.back()
 
 
-def get_urls_from_youtube(views_channel, browser, db):
+def get_urls_from_youtube(views_channel, browser):
     logging.info("Start watching video")
     keyword = views_channel['keyword']
     browser.get('https://www.youtube.com/results?search_query={}'.format(keyword))
@@ -112,7 +110,6 @@ def fake_ip():
 
 def watch_video():
     fake_ip()
-    db = create_pymongo()
     totals = db.agents.count({'status': True})
     agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals)).next()
     logging.info(agent['name'])
@@ -125,7 +122,7 @@ def watch_video():
     views_channel = db.views.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
     logging.info(views_channel['keyword'])
     if views_channel:
-        get_urls_from_youtube(views_channel, browser, db)
+        get_urls_from_youtube(views_channel, browser)
     else:
         logging.info("Not found channel")
 
