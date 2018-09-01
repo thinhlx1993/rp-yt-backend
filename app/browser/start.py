@@ -1,32 +1,26 @@
 # coding=utf-8
 import os
 import logging
-import time
 import subprocess
 import time
-import requests
 import sys
 import random
-import requests
-from time import sleep
-from bson import ObjectId
+from pymongo import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.keys import Keys
-import selenium.webdriver.support.ui as ui
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 
 logging.basicConfig(level=logging.INFO,
-                    filename=/opt/rp-yt-backend/app/browser/start.log,
+                    filename="/opt/rp-yt-backend/app/browser/start.log",
                     format="%(asctime)s:%(levelname)s:%(message)s")
 
-from pymongo import MongoClient
-client = MongoClient()
-db = client['test-yt']
+
+def create_pymongo():
+    client = MongoClient(host="167.99.145.231",
+                         username="admin",
+                         password="1234567a@",
+                         authSource="admin")
+    db = client['test-yt']
+    return db
 
 
 def create_browser(user_agent):
@@ -64,7 +58,7 @@ def create_browser(user_agent):
     return browser
 
 
-def get_urls_from_google(keyword):
+def get_urls_from_google(keyword, browser):
     browser.get('https://www.google.com.vn/search?q={}&tbm=vid'.format(keyword))
     search_btn = browser.find_element_by_id('mKlEF')
     search_btn.click()
@@ -106,13 +100,14 @@ def get_urls_from_youtube(keyword, browser):
     browser.quit()
 
 
-def fakeip():
+def fake_ip():
     subprocess.call(['sudo', 'killall', 'firefox'])
     subprocess.call(['sudo', 'service', 'fakeip', 'restart'])
 
 
 def watch_video():
-    fakeip()
+    fake_ip()
+    db = create_pymongo()
     totals = db.agents.count({'status': True})
     agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals)).next()
     print(agent['name'])
@@ -121,8 +116,13 @@ def watch_video():
     browser.set_window_position(0, 0)
     browser.maximize_window()
     browser.get('https://youtube.com')
-    keyword = "abraham+qd12"
-    get_urls_from_youtube(keyword, browser)
+    views_channel_totals = db.views.count({'status': 'active'})
+    views_channel = db.agents.find({'status': 'active'}).limit(-1).skip(random.randint(0, views_channel_totals)).next()
+    if views_channel:
+        keyword = views_channel['keyword']
+        get_urls_from_youtube(keyword, browser)
+    else:
+        logging.info("Not found channel")
 
 
 if __name__ == "__main__":
