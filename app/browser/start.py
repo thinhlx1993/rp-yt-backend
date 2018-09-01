@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO,
 
 
 def create_pymongo():
-    client = MongoClient(host="167.99.145.231",
+    client = MongoClient("167.99.145.231",
                          username="admin",
                          password="1234567a@",
                          authSource="admin")
@@ -75,6 +75,7 @@ def get_urls_from_google(keyword, browser):
 
 def get_urls_from_youtube(views_channel, browser, db):
     keyword = views_channel['keyword']
+    print(keyword)
     browser.get('https://www.youtube.com/results?search_query={}'.format(keyword))
     time.sleep(2)
     items = browser.find_elements_by_tag_name('a')
