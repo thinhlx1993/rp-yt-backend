@@ -1,19 +1,21 @@
 # coding=utf-8
 import sys
 import random
+import subprocess
 import requests
-from pymongo import MongoClient
 from time import sleep
 from bson import ObjectId
+from itertools import islice
+from pymongo import MongoClient
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.keys import Keys
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 api_key = '094c2420f179731334edccbf176dbd79'
 
@@ -97,7 +99,7 @@ def login(browser, email, password, recovery_email):
             next_btn = browser.find_element_by_id('next')
             browser.execute_script("arguments[0].click();", next_btn)
     except Exception as ex:
-        print('No need to enter recovery email')
+        print('No need to enter recovery email: {}'.format(str(ex)))
         return 'success'
     
     sleep(2)
@@ -188,6 +190,11 @@ def change_language(browser):
         print('Change lang failed: {}'.format(str(ex)))
 
 
+def fakeip():
+    subprocess.call(['service', 'fakeip@worker', 'restart'])
+    sleep(10)
+
+
 def videos_of_channel(browser):
     channels = db.channel.find({'status': 'active'})
     channels = list(channels)
@@ -207,8 +214,7 @@ def videos_of_channel(browser):
     return data, channel_id
 
 
-def main_func(browser, db):
-    channel_id = None
+def main_func(browser, db, videos, channel_id):
     login_status = False
     while not login_status:
         tmp_emails = db.email.find({'status': True})
@@ -225,14 +231,12 @@ def main_func(browser, db):
             print('Logged in to youtube')
         elif login_status == 'fail':
             print('{} can not login to youtube'.format(email))
-            browser.quit()
             return
         elif login_status == 'disabled':
             print('{} is disabled'.format(email))
             db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
-            browser.quit()
             return
-    videos, channel_id = videos_of_channel(browser)
+
     for video in videos:
         browser.get('https://www.youtube.com/copyright_complaint_form')
         try:
@@ -253,9 +257,11 @@ def main_func(browser, db):
                     textarea_box.send_keys(key_resolver)
                     submit_report_btn = browser.find_element_by_xpath('/html/body/div[1]/form/input[3]')
                     submit_report_btn.click()
+                else:
+                    return
         except Exception as ex:
             print('No Need to resolver captcha')
-
+        
         change_language(browser)
         reason1 = 'copyright infringement (someone copied my creation)'
         reason2 = 'i am!'
@@ -363,18 +369,36 @@ def main_func(browser, db):
             except Exception as ex:
                 print('Submit report failed: {}'.format(str(ex)))
                 db.channel.update({'_id': channel_id}, {'$inc': {'count_fail': 1}})
-    browser.quit()
+
+
+def chunk(it, size):
+    it = iter(it)
+    return iter(lambda: tuple(islice(it, size)), ())
+
 
 if __name__ == "__main__":
     while True:
         try:
+            fakeip()
             client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
             db = client['test-yt']
             totals = db.agents.count_documents({'status': True})
             agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals)).next()
-            print(agent['name'])
-            browser = create_browser(agent)
-            main_func(browser, db)
+            get_videos_browser = create_browser(agent)
+            all_videos, channel_id = videos_of_channel(get_videos_browser)
+            get_videos_browser.quit()
+            
+            chunk_videos = list(chunk(all_videos, 3))
+            for videos in chunk_videos:
+                main_browser = create_browser(agent)
+                main_func(main_browser, db, videos, channel_id)
+                if main_browser:
+                    main_browser.quit()
+                
         except Exception as ex:
-            browser.quit()
+            if get_videos_browser:
+                get_videos_browser.quit()
+            if main_browser:
+                main_browser.quit()
+            
             print('Exception: {}'.format(str(ex)))

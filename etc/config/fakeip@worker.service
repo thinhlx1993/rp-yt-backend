@@ -1,0 +1,11 @@
+[Unit]
+Description=serve newsfeed
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+ExecStart=/usr/sbin/openvpn /opt/rp-yt-backend/app/browser/USA.UDP.ovpn
+
+[Install]
+WantedBy=multi-user.target
