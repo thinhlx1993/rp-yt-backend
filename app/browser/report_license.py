@@ -17,6 +17,26 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+# logging
+import logging
+
+# create logger with 'report_application'
+logger = logging.getLogger('report_application')
+logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('/opt/rp-yt-backend/logs/report_license.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(fh)
+logger.addHandler(ch)
+
 api_key = '094c2420f179731334edccbf176dbd79'
 
 
@@ -35,6 +55,7 @@ def create_browser(user_agent):
     options = webdriver.FirefoxOptions()
 
     print(sys.platform)
+    logger.info(sys.platform)
     if sys.platform == 'win32':
         geckodriver = '../../etc/geckodriver-v0.21.0-win64/geckodriver.exe'
         binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
@@ -67,9 +88,7 @@ def login(browser, email, password, recovery_email):
     sleep(3)
     WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#headingText > content")))
     heading_text = browser.find_element_by_css_selector('#headingText > content')
-    if heading_text.text == 'Welcome':
-        print(heading_text.text)
-    else:
+    if heading_text.text != 'Welcome':
         return 'fail'
 
     WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.whsOnd.zHQkBf")))
@@ -84,7 +103,8 @@ def login(browser, email, password, recovery_email):
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "headingText")))
         header = browser.find_element_by_id('headingText')
         if header and header.text == 'Verify it\'s you':
-            print('Need to input recovery email')
+            print('Input recovery email')
+            logger.info('Input recovery email')
             browser.find_element_by_class_name('vdE7Oc').click()
             sleep(2)
             while True:
@@ -94,11 +114,13 @@ def login(browser, email, password, recovery_email):
                     recovery_inp.send_keys(recovery_email)
                     break
                 except:
-                    print('Input recovery email')
+                    logger.info('Input recovery email error')
+                    print('Input recovery email error')
 
             next_btn = browser.find_element_by_id('next')
             browser.execute_script("arguments[0].click();", next_btn)
     except Exception as ex:
+        logger.info('No need to enter recovery email: {}'.format(str(ex)))
         print('No need to enter recovery email: {}'.format(str(ex)))
         return 'success'
     
@@ -122,6 +144,7 @@ def login(browser, email, password, recovery_email):
         if header and (header.text == 'Account disabled' or header.text == 'Change password'):
             return 'disabled'
     except Exception as ex:
+        logger.error('Enter recovery email successfully')
         print('Enter recovery email successfully')
         
     try:
@@ -143,6 +166,7 @@ def get_key_recaptcha(browser, xpath):
                 return key
     except Exception as ex:
         print('Can not switch to recaptcha checkbox: {}'.format(str(ex)))
+        logger.error('Can not switch to recaptcha checkbox: {}'.format(str(ex)))
         return None
 
 
@@ -153,6 +177,7 @@ def key_resolver_captcha(api_url):
         if 'OK' in res:
             request_id = res[3:]
             resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
+            logger.info(resolver_api)
             print(resolver_api)
             while True:
                 try:
@@ -166,12 +191,15 @@ def key_resolver_captcha(api_url):
                         break
                     sleep(5)
                 except Exception as ex:
+                    logger.error('Get response error: {}'. format(str(ex)))
                     print('Get response error: {}'. format(str(ex)))
 
             return response_key
         else:
+            logger.info('Can not get key api 2captcha.com')
             print('Can not get key api 2captcha.com')
     except Exception as ex:
+        logger.error('Can not resolver captcha: {}'.format(str(ex)))
         print('Can not resolver captcha: {}'.format(str(ex)))
         return None
 
@@ -187,6 +215,7 @@ def change_language(browser):
                 lang.click()
                 return
     except Exception as ex:
+        logger.error('Change lang failed: {}'.format(str(ex)))
         print('Change lang failed: {}'.format(str(ex)))
 
 
@@ -199,6 +228,7 @@ def videos_of_channel(browser):
     channels = db.channel.find({'status': 'active'})
     channels = list(channels)
     if len(channels) == 0:
+        logger.info('Channel list is empty')
         print('Channel list is empty')
         return
     channel = random.choice(channels)
@@ -220,6 +250,7 @@ def main_func(browser, db, videos, channel_id):
         tmp_emails = db.email.find({'status': True})
         tmp_emails = list(tmp_emails)
         if len(tmp_emails) == 0:
+            logger.info('Can not find any email')
             print('Can not find any email')
             return
         tmp_email = random.choice(tmp_emails)
@@ -228,11 +259,14 @@ def main_func(browser, db, videos, channel_id):
         recovery_email = tmp_email['recovery_email']
         login_status = login(browser, email, password, recovery_email)
         if login_status == 'success':
+            logger.info('Logged in to youtube')
             print('Logged in to youtube')
         elif login_status == 'fail':
+            logger.info('{} can not login to youtube'.format(email))
             print('{} can not login to youtube'.format(email))
             return
         elif login_status == 'disabled':
+            logger.info('{} is disabled'.format(email))
             print('{} is disabled'.format(email))
             db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
             return
@@ -263,6 +297,7 @@ def main_func(browser, db, videos, channel_id):
                 else:
                     captcha_status = False
         except Exception as ex:
+            logger.error('No Need to resolver captcha')
             print('No Need to resolver captcha')
         
         if captcha_status:
@@ -368,9 +403,11 @@ def main_func(browser, db, videos, channel_id):
                     change_language(browser)
                     content = browser.find_element_by_css_selector('.page-default > div > h1')
                     if content and 'Thank you' in content.text:
+                        logger.info('Submit report successfully')
                         print('Submit report successfully')
                         db.channel.update({'_id': channel_id}, {'$inc': {'count_success': 1}})
                 except Exception as ex:
+                    logger.error('Submit report failed: {}'.format(str(ex)))
                     print('Submit report failed: {}'.format(str(ex)))
                     db.channel.update({'_id': channel_id}, {'$inc': {'count_fail': 1}})
 
@@ -404,5 +441,5 @@ if __name__ == "__main__":
                 get_videos_browser.quit()
             if main_browser:
                 main_browser.quit()
-            
+            logger.error('Exception: {}'.format(str(ex)))
             print('Exception: {}'.format(str(ex)))
