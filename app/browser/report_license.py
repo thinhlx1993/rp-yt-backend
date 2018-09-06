@@ -239,6 +239,9 @@ def main_func(browser, db, videos, channel_id):
 
     for video in videos:
         browser.get('https://www.youtube.com/copyright_complaint_form')
+        # need to resolver captcha
+        # break if captcha can not resolved
+        captcha_status = True
         try:
             title = browser.find_element_by_xpath('/html/body/div[1]/div/b')
             if title.text == 'About this page':
@@ -258,117 +261,118 @@ def main_func(browser, db, videos, channel_id):
                     submit_report_btn = browser.find_element_by_xpath('/html/body/div[1]/form/input[3]')
                     submit_report_btn.click()
                 else:
-                    return
+                    captcha_status = False
         except Exception as ex:
             print('No Need to resolver captcha')
         
-        change_language(browser)
-        reason1 = 'copyright infringement (someone copied my creation)'
-        reason2 = 'i am!'
+        if captcha_status:
+            change_language(browser)
+            reason1 = 'copyright infringement (someone copied my creation)'
+            reason2 = 'i am!'
 
-        complaint_filter_div = browser.find_element_by_id('complaint_filter_div')
-        complaints = complaint_filter_div.find_elements_by_css_selector('ul > li > label')
-        for complaint in complaints:
-            complaint_text = complaint.text
-            complaint_text = complaint_text.lower().strip()
-            if complaint_text == reason1:
-                complaint.click()
+            complaint_filter_div = browser.find_element_by_id('complaint_filter_div')
+            complaints = complaint_filter_div.find_elements_by_css_selector('ul > li > label')
+            for complaint in complaints:
+                complaint_text = complaint.text
+                complaint_text = complaint_text.lower().strip()
+                if complaint_text == reason1:
+                    complaint.click()
 
-        affected_entities_div = browser.find_element_by_id('affected-entities-div')
-        complaints = affected_entities_div.find_elements_by_css_selector('ul > li > label')
-        for complaint in complaints:
-            complaint_text = complaint.text
-            complaint_text = complaint_text.lower().strip()
-            if complaint_text == reason2:
-                complaint.click()
+            affected_entities_div = browser.find_element_by_id('affected-entities-div')
+            complaints = affected_entities_div.find_elements_by_css_selector('ul > li > label')
+            for complaint in complaints:
+                complaint_text = complaint.text
+                complaint_text = complaint_text.lower().strip()
+                if complaint_text == reason2:
+                    complaint.click()
 
-        video_url_0 = browser.find_element_by_id('video_url_0')
-        video_url_0.send_keys(video['url'])
-        from selenium.webdriver.support.ui import Select
-        issue_type_0 = Select(browser.find_element_by_id('issue_type_0'))
-        issue_type_0.select_by_value('S')
+            video_url_0 = browser.find_element_by_id('video_url_0')
+            video_url_0.send_keys(video['url'])
+            from selenium.webdriver.support.ui import Select
+            issue_type_0 = Select(browser.find_element_by_id('issue_type_0'))
+            issue_type_0.select_by_value('S')
 
-        issue_details_wrapper = browser.find_element_by_class_name('issue_details_wrapper')
-        conditional_value_validations = issue_details_wrapper.find_elements_by_css_selector('.conditional-value-validation')
-        for conditional_value_validation in conditional_value_validations:
-            if conditional_value_validation.get_attribute('name') == 'issue_detail_S_0':
-                conditional_value_validation.send_keys(video['title'])
+            issue_details_wrapper = browser.find_element_by_class_name('issue_details_wrapper')
+            conditional_value_validations = issue_details_wrapper.find_elements_by_css_selector('.conditional-value-validation')
+            for conditional_value_validation in conditional_value_validations:
+                if conditional_value_validation.get_attribute('name') == 'issue_detail_S_0':
+                    conditional_value_validation.send_keys(video['title'])
 
-        reason3 = 'entire video'
-        position_marker = browser.find_element_by_class_name('position-marker-class-S-0')
-        issue_details = position_marker.find_elements_by_css_selector('ul > li > label')
-        for issue_detail in issue_details:
-            issue_detail_text = issue_detail.text
-            issue_detail_text = issue_detail_text.lower().strip()
-            if issue_detail_text == reason3:
-                issue_detail.click()
+            reason3 = 'entire video'
+            position_marker = browser.find_element_by_class_name('position-marker-class-S-0')
+            issue_details = position_marker.find_elements_by_css_selector('ul > li > label')
+            for issue_detail in issue_details:
+                issue_detail_text = issue_detail.text
+                issue_detail_text = issue_detail_text.lower().strip()
+                if issue_detail_text == reason3:
+                    issue_detail.click()
 
-        totals = db.fake_user.count_documents({})
-        fake_user = db.fake_user.find({}).limit(-1).skip(random.randint(0, totals)).next()
+            totals = db.fake_user.count_documents({})
+            fake_user = db.fake_user.find({}).limit(-1).skip(random.randint(0, totals)).next()
 
-        owner_display_name = browser.find_element_by_id('owner_display_name')
-        owner_display_name.send_keys(fake_user['name'])
+            owner_display_name = browser.find_element_by_id('owner_display_name')
+            owner_display_name.send_keys(fake_user['name'])
 
-        requester_title = browser.find_element_by_id('requester_title')
-        requester_title.send_keys(fake_user['name'])
+            requester_title = browser.find_element_by_id('requester_title')
+            requester_title.send_keys(fake_user['name'])
 
-        requester_name = browser.find_element_by_id('requester_name')
-        requester_name.send_keys(fake_user['name'])
+            requester_name = browser.find_element_by_id('requester_name')
+            requester_name.send_keys(fake_user['name'])
 
-        address1 = browser.find_element_by_id('address1')
-        address1.send_keys(fake_user['address_1'])
+            address1 = browser.find_element_by_id('address1')
+            address1.send_keys(fake_user['address_1'])
 
-        address2 = browser.find_element_by_id('address2')
-        address2.send_keys(fake_user['address_2'])
+            address2 = browser.find_element_by_id('address2')
+            address2.send_keys(fake_user['address_2'])
 
-        city = browser.find_element_by_id('city')
-        city.send_keys(fake_user['city'])
+            city = browser.find_element_by_id('city')
+            city.send_keys(fake_user['city'])
 
-        state = browser.find_element_by_id('state')
-        state.send_keys(fake_user['state'])
+            state = browser.find_element_by_id('state')
+            state.send_keys(fake_user['state'])
 
-        zip_code = browser.find_element_by_id('zip')
-        zip_code.send_keys(fake_user['zip_code'])
+            zip_code = browser.find_element_by_id('zip')
+            zip_code.send_keys(fake_user['zip_code'])
 
-        phone = browser.find_element_by_id('phone')
-        phone.send_keys(fake_user['phone'])
+            phone = browser.find_element_by_id('phone')
+            phone.send_keys(fake_user['phone'])
 
-        country = Select(browser.find_element_by_id('country'))
-        country.select_by_value('US')
+            country = Select(browser.find_element_by_id('country'))
+            country.select_by_value('US')
 
-        browser.find_element_by_id('checkbox_confirmation_1').click()
-        browser.find_element_by_id('checkbox_confirmation_2').click()
-        browser.find_element_by_id('checkbox_confirmation_3').click()
-        browser.find_element_by_id('checkbox_confirmation_liability').click()
-        browser.find_element_by_id('checkbox_confirmation_abuse_termination').click()
-        owner_signature = browser.find_element_by_id('owner_signature')
-        owner_signature.send_keys(fake_user['name'])
+            browser.find_element_by_id('checkbox_confirmation_1').click()
+            browser.find_element_by_id('checkbox_confirmation_2').click()
+            browser.find_element_by_id('checkbox_confirmation_3').click()
+            browser.find_element_by_id('checkbox_confirmation_liability').click()
+            browser.find_element_by_id('checkbox_confirmation_abuse_termination').click()
+            owner_signature = browser.find_element_by_id('owner_signature')
+            owner_signature.send_keys(fake_user['name'])
 
-        iframe_path = '/html/body/div[1]/div[3]/div/div/div[2]/form/div[5]/div[4]/div/div/iframe'
-        google_key = get_key_recaptcha(browser, iframe_path)
-        current_url = browser.current_url
-        captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
-            api_key, google_key, current_url)
-        key_resolver = key_resolver_captcha(captcha_resolver_api)
-        if key_resolver is not None:
-            browser.switch_to.default_content()
-            WebDriverWait(browser, 30).until(
-                EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
-            browser.execute_script(
-                "document.getElementById('g-recaptcha-response').style.display = 'block';")
-            textarea_box = browser.find_element_by_id('g-recaptcha-response')
-            textarea_box.send_keys(key_resolver)
-            submit_report_btn = browser.find_element_by_id('submit_complaint_button')
-            submit_report_btn.click()
-            try:
-                change_language(browser)
-                content = browser.find_element_by_css_selector('.page-default > div > h1')
-                if content and 'Thank you' in content.text:
-                    print('Submit report successfully')
-                    db.channel.update({'_id': channel_id}, {'$inc': {'count_success': 1}})
-            except Exception as ex:
-                print('Submit report failed: {}'.format(str(ex)))
-                db.channel.update({'_id': channel_id}, {'$inc': {'count_fail': 1}})
+            iframe_path = '/html/body/div[1]/div[3]/div/div/div[2]/form/div[5]/div[4]/div/div/iframe'
+            google_key = get_key_recaptcha(browser, iframe_path)
+            current_url = browser.current_url
+            captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
+                api_key, google_key, current_url)
+            key_resolver = key_resolver_captcha(captcha_resolver_api)
+            if key_resolver is not None:
+                browser.switch_to.default_content()
+                WebDriverWait(browser, 30).until(
+                    EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
+                browser.execute_script(
+                    "document.getElementById('g-recaptcha-response').style.display = 'block';")
+                textarea_box = browser.find_element_by_id('g-recaptcha-response')
+                textarea_box.send_keys(key_resolver)
+                submit_report_btn = browser.find_element_by_id('submit_complaint_button')
+                submit_report_btn.click()
+                try:
+                    change_language(browser)
+                    content = browser.find_element_by_css_selector('.page-default > div > h1')
+                    if content and 'Thank you' in content.text:
+                        print('Submit report successfully')
+                        db.channel.update({'_id': channel_id}, {'$inc': {'count_success': 1}})
+                except Exception as ex:
+                    print('Submit report failed: {}'.format(str(ex)))
+                    db.channel.update({'_id': channel_id}, {'$inc': {'count_fail': 1}})
 
 
 def chunk(it, size):
