@@ -41,7 +41,7 @@ def create_browser(user_agent):
     else:
         geckodriver = '.../../etc/geckodriver-v0.21.0-linux64/geckodriver'
         binary = '/usr/bin/firefox'
-        options.add_argument('-headless')
+        options.add_argument('--headless')
     driver = webdriver.Firefox(
         executable_path=geckodriver,
         firefox_options=options,
