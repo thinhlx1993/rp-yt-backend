@@ -176,7 +176,6 @@ def get_key_recaptcha(browser, xpath):
 def key_resolver_captcha(api_url):
     try:
         r = requests.get(api_url)
-        sleep(5)
         res = r.text
         if 'OK' in res:
             request_id = res[3:]
@@ -184,9 +183,9 @@ def key_resolver_captcha(api_url):
             logger.info(resolver_api)
             print(resolver_api)
             while True:
+                sleep(5)
                 try:
                     response = requests.get(resolver_api)
-                    sleep(5)
                     response = response.text
                     if 'OK' in response:
                         response_key = response[3:]
