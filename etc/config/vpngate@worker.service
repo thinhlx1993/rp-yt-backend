@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=root
 Group=www-data
-ExecStart=/usr/local/bin/autovpn US
+ExecStart=/usr/local/bin/autovpn
 
 [Install]
 WantedBy=multi-user.target
