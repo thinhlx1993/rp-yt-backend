@@ -176,6 +176,7 @@ def get_key_recaptcha(browser, xpath):
 def key_resolver_captcha(api_url):
     try:
         r = requests.get(api_url)
+        sleep(5)
         res = r.text
         if 'OK' in res:
             request_id = res[3:]
@@ -192,7 +193,6 @@ def key_resolver_captcha(api_url):
                     if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
                         response_key = None
                         break
-                    sleep(5)
                 except Exception as ex:
                     logger.error('Get response error: {}'. format(str(ex)))
                     print('Get response error: {}'. format(str(ex)))
