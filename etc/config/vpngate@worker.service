@@ -1,0 +1,11 @@
+[Unit]
+Description=VPN Gate Service
+After=network.target
+
+[Service]
+User=root
+Group=www-data
+ExecStart=/usr/local/bin/autovpn US
+
+[Install]
+WantedBy=multi-user.target

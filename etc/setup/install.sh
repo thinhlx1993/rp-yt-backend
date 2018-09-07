@@ -9,10 +9,16 @@ mkdir /opt/rp-yt-backend/logs
 apt install firefox -y
 apt upgrade firefox -y
 apt-get install openvpn -y
-cp /opt/rp-yt-backend/etc/config/report@worker.service /etc/systemd/system/
-cp /opt/rp-yt-backend/etc/config/fakeip@worker.service /etc/systemd/system/
+apt install golang-go -y
+cd /opt && git clone https://github.com/adtac/autovpn
+cd autovpn
+go build autovpn.go
+install autovpn /usr/local/bin/
+apt-get install macchanger -y
+cp /opt/rp-yt-backend/etc/config/vpngate@worker.service /etc/systemd/system/
+cp /opt/rp-yt-backend/etc/config/vpngate@worker.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl start report@worker
 systemctl enable report@worker
-systemctl start fakeip@worker
-systemctl enable fakeip@worker
+systemctl start vpngate@worker
+systemctl enable vpngate@worker

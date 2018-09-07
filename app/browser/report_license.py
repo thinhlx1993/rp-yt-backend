@@ -1,4 +1,5 @@
 # coding=utf-8
+import os
 import sys
 import random
 import subprocess
@@ -24,7 +25,9 @@ import logging
 logger = logging.getLogger('report_application')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler('/opt/rp-yt-backend/logs/report_license.log')
+log_path = 'D:/Code/report-yt-backend/logs' if sys.platform == 'win32' \
+    else '/opt/rp-yt-backend/logs/report_license.log'
+fh = logging.FileHandler(log_path)
 fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()
@@ -220,7 +223,8 @@ def change_language(browser):
 
 
 def fakeip():
-    subprocess.call(['service', 'fakeip@worker', 'restart'])
+    subprocess.call(['macchanger', '-A', 'ens33'])
+    subprocess.call(['service', 'vpngate@worker', 'restart'])
     sleep(10)
 
 
