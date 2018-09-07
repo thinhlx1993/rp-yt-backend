@@ -186,6 +186,7 @@ def key_resolver_captcha(api_url):
             while True:
                 try:
                     response = requests.get(resolver_api)
+                    sleep(5)
                     response = response.text
                     if 'OK' in response:
                         response_key = response[3:]
