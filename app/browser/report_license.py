@@ -223,8 +223,10 @@ def change_language(browser):
 
 
 def fakeip():
-    subprocess.call(['macchanger', '-r'])
-    subprocess.call(['macchanger', '-s'])
+    subprocess.call(['macchanger', '-A', 'ens33'])
+    process = subprocess.Popen(['macchanger', '-s'], stdout=subprocess.PIPE)
+    stdout = process.communicate()[0]
+    logger.info(stdout)
     subprocess.call(['service', 'vpngate@worker', 'restart'])
     sleep(10)
 
@@ -433,6 +435,7 @@ if __name__ == "__main__":
             db = client['test-yt']
             totals = db.agents.count_documents({'status': True})
             agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals)).next()
+            logger.info('new agent: {}'.format(agent['name']))
             get_videos_browser = create_browser(agent)
             all_videos, channel_id = videos_of_channel(get_videos_browser)
             get_videos_browser.quit()
