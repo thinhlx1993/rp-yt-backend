@@ -238,6 +238,9 @@ def videos_of_channel(browser):
     channel = random.choice(channels)
     browser.get('{}/videos'.format(channel['channel']))
     channel_id = channel['_id']
+    for i in range(5):
+        browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        
     videos = browser.find_elements_by_id('video-title')
     data = list()
     for video in videos:
