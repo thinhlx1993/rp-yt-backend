@@ -7,7 +7,7 @@ pip3 install -U selenium -y
 chmod +x -R /opt/rp-yt-backend/etc
 mkdir /opt/rp-yt-backend/logs
 apt install firefox -y
-apt upgrade firefox -y
+# apt upgrade firefox -y
 apt-get install openvpn -y
 apt install golang-go -y
 cd /opt && git clone https://github.com/adtac/autovpn
