@@ -14,9 +14,9 @@ cd autovpn
 go build autovpn.go
 install autovpn /usr/local/bin/
 apt-get install macchanger -y
-cp /opt/rp-yt-backend/etc/config/vpngate@worker.service /etc/systemd/system/
-cp /opt/rp-yt-backend/etc/config/vpngate@worker.service /etc/systemd/system/
+cp /opt/rp-yt-backend/etc/config/report@worker.service /etc/systemd/system/
+cp /opt/rp-yt-backend/etc/config/fakeip@worker.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable report@worker
-systemctl enable vpngate@worker
+systemctl enable fakeip@worker
 reboot

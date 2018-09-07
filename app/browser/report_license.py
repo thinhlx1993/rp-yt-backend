@@ -227,7 +227,7 @@ def fakeip():
     process = subprocess.Popen(['macchanger', '-s', 'ens33'], stdout=subprocess.PIPE)
     stdout = process.communicate()[0]
     logger.info(stdout)
-    subprocess.call(['service', 'vpngate@worker', 'restart'])
+    subprocess.call(['service', 'fakeip@worker', 'restart'])
     sleep(10)
 
 
