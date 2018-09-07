@@ -17,7 +17,6 @@ apt-get install macchanger -y
 cp /opt/rp-yt-backend/etc/config/vpngate@worker.service /etc/systemd/system/
 cp /opt/rp-yt-backend/etc/config/vpngate@worker.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl start report@worker
 systemctl enable report@worker
-systemctl start vpngate@worker
 systemctl enable vpngate@worker
+reboot
