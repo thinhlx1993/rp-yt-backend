@@ -223,10 +223,6 @@ def change_language(browser):
 
 
 def fakeip():
-    # subprocess.call(['macchanger', '-A', 'ens33'])
-    # process = subprocess.Popen(['macchanger', '-s', 'ens33'], stdout=subprocess.PIPE)
-    # stdout = process.communicate()[0]
-    # logger.info(stdout)
     subprocess.call(['service', 'fakeip@worker', 'restart'])
     sleep(10)
 
