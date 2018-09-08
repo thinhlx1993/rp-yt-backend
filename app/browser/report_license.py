@@ -223,10 +223,10 @@ def change_language(browser):
 
 
 def fakeip():
-    subprocess.call(['macchanger', '-A', 'ens33'])
-    process = subprocess.Popen(['macchanger', '-s', 'ens33'], stdout=subprocess.PIPE)
-    stdout = process.communicate()[0]
-    logger.info(stdout)
+    # subprocess.call(['macchanger', '-A', 'ens33'])
+    # process = subprocess.Popen(['macchanger', '-s', 'ens33'], stdout=subprocess.PIPE)
+    # stdout = process.communicate()[0]
+    # logger.info(stdout)
     subprocess.call(['service', 'fakeip@worker', 'restart'])
     sleep(10)
 
@@ -253,7 +253,7 @@ def videos_of_channel(browser):
         data.append({'url': href, 'title': video.text})
     return data, channel_id
 
-
+        
 def main_func(browser, db, videos, channel_id):
     login_status = False
     while not login_status:
