@@ -17,8 +17,6 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from pymongo import MongoClient
 
-client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
-db = client['test-yt']
 
 def find_report_link(s):
     """
@@ -61,39 +59,7 @@ class element_has_css_class(object):
             return element
         else:
             return False
-
-api_key = '094c2420f179731334edccbf176dbd79'
-capabilities = DesiredCapabilities.FIREFOX.copy()
-capabilities['marionette'] = True
-capabilities['acceptSslCerts'] = True
-profile = webdriver.FirefoxProfile()
-profile.set_preference("browser.privatebrowsing.autostart", True)
-profile.set_preference("browser.cache.disk.enable", False)
-profile.set_preference("browser.cache.memory.enable", False)
-profile.set_preference("browser.cache.offline.enable", False)
-profile.set_preference("network.http.use-cache", False)
-profile.set_preference("media.volume_scale", "0.0")
-options = webdriver.FirefoxOptions()
-
-print(sys.platform)
-if sys.platform == 'win32':
-    geckodriver = 'etc/geckodriver-v0.21.0-win64/geckodriver.exe'
-    binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
-else:
-    geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
-    binary = '/usr/bin/firefox'
-    options.add_argument('-headless')
-
-browser = webdriver.Firefox(
-    executable_path=geckodriver,
-    firefox_options=options,
-    capabilities=capabilities,
-    firefox_binary=binary,
-    firefox_profile=profile)
-browser.set_window_size(1920, 1080)
-browser.set_window_position(0, 0)
-login_status = False
-
+        
 
 def login(email, password, recovery_email):
     try:
@@ -308,10 +274,6 @@ def change_language():
         print('Can not change language: {}'.format(str(ex)))
 
 
-def print_hello():
-    print('start')
-
-
 def stat_report():
     global login_status
     channels = db.channel.find({'status': 'active'})
@@ -404,3 +366,40 @@ def stat_report():
     except Exception as ex:
         db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
         print('Exception: {}'.format(str(ex)))
+
+
+if __name__ == '__main__':
+    client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
+    db = client['test-yt']
+    api_key = '094c2420f179731334edccbf176dbd79'
+    capabilities = DesiredCapabilities.FIREFOX.copy()
+    capabilities['marionette'] = True
+    capabilities['acceptSslCerts'] = True
+    profile = webdriver.FirefoxProfile()
+    profile.set_preference("browser.privatebrowsing.autostart", True)
+    profile.set_preference("browser.cache.disk.enable", False)
+    profile.set_preference("browser.cache.memory.enable", False)
+    profile.set_preference("browser.cache.offline.enable", False)
+    profile.set_preference("network.http.use-cache", False)
+    profile.set_preference("media.volume_scale", "0.0")
+    options = webdriver.FirefoxOptions()
+    
+    print(sys.platform)
+    if sys.platform == 'win32':
+        geckodriver = '../../etc/geckodriver-v0.21.0-win64/geckodriver.exe'
+        binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
+    else:
+        geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
+        binary = '/usr/bin/firefox'
+        options.add_argument('-headless')
+    
+    browser = webdriver.Firefox(
+        executable_path=geckodriver,
+        firefox_options=options,
+        capabilities=capabilities,
+        firefox_binary=binary,
+        firefox_profile=profile)
+    browser.set_window_size(1920, 1080)
+    browser.set_window_position(0, 0)
+    login_status = False
+    stat_report()

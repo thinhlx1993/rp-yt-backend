@@ -24,7 +24,7 @@ def upload_email():
     except Exception as ex:
         return send_error(message=str(ex))
 
-    keys = ('email', 'password', 'recovery_email', 'date')
+    keys = ('email', 'password', 'recovery_email', 'date', 'phone')
     new_email = 0
     error_email = 0
     for index, row in data_xls.iterrows():

@@ -52,6 +52,7 @@ def update_email():
         'email': FieldString(),
         'password': FieldString(),
         'recovery_email': FieldString(),
+        'phone': FieldString(),
         'date': FieldString()
     }
 
@@ -65,7 +66,7 @@ def update_email():
     if email is None:
         return send_error(message='Not found email')
 
-    keys = ('email', 'password', 'recovery_email', 'date')
+    keys = ('email', 'password', 'recovery_email', 'date', 'phone')
 
     for k in keys:
         v = json_data.get(k, None)
@@ -86,7 +87,8 @@ def create_email():
         'email': fields.Email(),
         'password': FieldString(),
         'recovery_email': fields.Email(),
-        'date': FieldString()
+        'date': FieldString(),
+        'phone': FieldString()
     }
 
     try:
@@ -99,7 +101,7 @@ def create_email():
     if email is not None:
         return send_error(message='Duplicate email')
 
-    keys = ('email', 'password', 'recovery_email', 'date')
+    keys = ('email', 'password', 'recovery_email', 'date', 'phone')
 
     email = dict()
     for k in keys:
