@@ -4,6 +4,7 @@ import random
 import requests
 from time import sleep
 from bson import ObjectId
+import subprocess, platform
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException
@@ -61,8 +62,9 @@ class element_has_css_class(object):
             return False
         
 
-def login(email, password, recovery_email):
+def login(email, password, recovery_email, phone):
     try:
+        print(phone)
         browser.get('https://www.youtube.com/')
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "ytd-button-renderer.style-scope:nth-child(5) > a:nth-child(1)")))
         # sign_in_btn = browser.find_element_by_css_selector('a.yt-simple-endpoint.style-scope.ytd-button-renderer')
@@ -87,31 +89,49 @@ def login(email, password, recovery_email):
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "passwordNext")))
         browser.find_element_by_id('passwordNext').click()
         try:
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "headingText")))
-            header = browser.find_element_by_id('headingText')
-            if header and header.text == 'Verify it\'s you':
-                print('Need to input recovery email')
-                browser.find_element_by_class_name('vdE7Oc').click()
-                sleep(2)
-                while True:
-                    try:
-                        recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
-                        recovery_inp.click()
-                        recovery_inp.send_keys(recovery_email)
-                        break
-                    except:
-                        print('Input recovery email')
-
-                next_btn = browser.find_element_by_id('next')
-                browser.execute_script("arguments[0].click();", next_btn)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "headingText")))
-            header = browser.find_element_by_id('headingText')
-            if header and header.text == 'Account Disabled':
-                return 'disabled'
+            WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Verify it\'s you'))
+            print('Verify account')
+            recovery_options = browser.find_elements_by_class_name('vdE7Oc')
+            for recovery_option in recovery_options:
+                print(recovery_option.text)
+                if recovery_option.text == 'Confirm your recovery phone number':
+                    print('Confirm your recovery phone number')
+                    recovery_option.click()
+                    sleep(2)
+                    while True:
+                        try:
+                            phone_number_inp = browser.find_element_by_id('phoneNumberId')
+                            phone_number_inp.click()
+                            phone_number_inp.send_keys(phone)
+                            next_btn = browser.find_element_by_id('next')
+                            browser.execute_script("arguments[0].click();", next_btn)
+                            break
+                        except:
+                            pass
+                    
+                    
+                    
+                elif recovery_option.text == 'Need to input recovery email':
+                    print('Need to input recovery email')
+                    recovery_option.click()
+                    sleep(2)
+                    while True:
+                        try:
+                            recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
+                            recovery_inp.click()
+                            recovery_inp.send_keys(recovery_email)
+            
+                            next_btn = browser.find_element_by_id('next')
+                            browser.execute_script("arguments[0].click();", next_btn)
+                            break
+                        except:
+                            pass
+                        
+            WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
+            return 'disabled'
 
         except Exception as ex:
             print('No need to input recovery email: {}'.format(str(ex)))
-            return 'fail'
 
         try:
             # check protected account
@@ -254,25 +274,17 @@ def key_resolver_captcha(api_url):
 def change_language():
     try:
         while True:
-            try:
-                lang_btn = browser.find_element_by_id('yt-picker-language-button')
-                lang_btn.click()
-                sleep(5)
-                # en_us_btn = browser.find_element_by_xpath(
-                #     '/html/body/div[2]/div/div[1]/div[2]/div[2]/form/div/div[2]/button[2]')
-                # en_us_btn.click()
-                langs = browser.find_elements_by_css_selector('.yt-picker-item > span')
-                for lang in langs:
-                    if 'English' in lang.text:
-                        lang.click()
-                        return
-                break
-            except Exception as ex:
-                print('Change lang failed: {}'.format(str(ex)))
-
+            lang_btn = browser.find_element_by_id('yt-picker-language-button')
+            lang_btn.click()
+            sleep(2)
+            langs = browser.find_elements_by_css_selector('.yt-picker-item > span')
+            for lang in langs:
+                if 'English' in lang.text:
+                    lang.click()
+                    return
     except Exception as ex:
-        print('Can not change language: {}'.format(str(ex)))
-
+        print('Change lang failed: {}'.format(str(ex)))
+        
 
 def stat_report():
     global login_status
@@ -293,13 +305,15 @@ def stat_report():
         email = tmp_email['email']
         password = tmp_email['password']
         recovery_email = tmp_email['recovery_email']
-        login_status = login(email, password, recovery_email)
-        if login_status == 'success':
+        phone = tmp_email['phone']
+        login_response = login(email, password, recovery_email, phone)
+        if login_response == 'success':
             print('Logged in to youtube')
-        elif login_status == 'fail':
+            login_status = True
+        elif login_response == 'fail':
             print('{} can not login to youtube'.format(email))
             return
-        elif login_status == 'disabled':
+        elif login_response == 'disabled':
             print('{} is disabled'.format(email))
             db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
             return
@@ -368,10 +382,47 @@ def stat_report():
         print('Exception: {}'.format(str(ex)))
 
 
-if __name__ == '__main__':
+def create_db_connection():
     client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
     db = client['test-yt']
-    api_key = '094c2420f179731334edccbf176dbd79'
+    return db
+
+
+def get_proxy():
+    crawler_proxy = create_browser()
+    crawler_proxy.get('https://free-proxy-list.net/')
+    items = crawler_proxy.find_elements_by_class_name('odd')
+    items += crawler_proxy.find_elements_by_class_name('even')
+    data = []
+    for item in items:
+        tds = item.find_elements_by_tag_name('td')
+        # print("{}:{}".format(tds[0].text, tds[1].text))
+        data.append({"host": tds[0].text, "port": tds[1].text})
+
+    crawler_proxy.quit()
+    for item in data:
+        if ping_ok(item['host']):
+            return item
+    return None
+
+
+def ping_ok(sHost):
+        try:
+            output = subprocess.check_output("ping -{} 1 {}". \
+                                             format('n' if platform.system().lower()=="windows" else 'c', sHost), shell=True)
+            output = str(output)
+            print(output)
+            index = output.index('time')
+            ending = output.index('ms TTL')
+            time = output[index+5: ending]
+            print(int(time))
+            return int(time) < 300
+        except Exception as e:
+            print(e)
+            return False
+        
+        
+def create_browser():
     capabilities = DesiredCapabilities.FIREFOX.copy()
     capabilities['marionette'] = True
     capabilities['acceptSslCerts'] = True
@@ -382,6 +433,19 @@ if __name__ == '__main__':
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
     profile.set_preference("media.volume_scale", "0.0")
+    if proxy is not None:
+        profile.set_preference("network.proxy.type", 1)
+        profile.set_preference("network.proxy.http",proxy['host'])
+        profile.set_preference("network.proxy.http_port",int(proxy['port']))
+        profile.set_preference("network.proxy.https",proxy['host'])
+        profile.set_preference("network.proxy.https_port",int(proxy['port']))
+        profile.set_preference("network.proxy.ftp",proxy['host'])
+        profile.set_preference("network.proxy.ftp_port",int(proxy['port']))
+        profile.set_preference("network.proxy.ssl",proxy['host'])
+        profile.set_preference("network.proxy.ssl_port",int(proxy['port']))
+        profile.set_preference("network.proxy.socks",proxy['host'])
+        profile.set_preference("network.proxy.socks_port",int(proxy['port']))
+        
     options = webdriver.FirefoxOptions()
     
     print(sys.platform)
@@ -399,7 +463,21 @@ if __name__ == '__main__':
         capabilities=capabilities,
         firefox_binary=binary,
         firefox_profile=profile)
-    browser.set_window_size(1920, 1080)
-    browser.set_window_position(0, 0)
+    return browser
+    
+
+if __name__ == '__main__':
+    db = create_db_connection()
+    api_key = '094c2420f179731334edccbf176dbd79'
+    proxy = None
+#    print('Get Proxy Server')
+#    while True:
+#        proxy = get_proxy()
+#        if proxy is not None:
+#            break
+        
+    print('Start Report')    
+    browser = create_browser()
     login_status = False
-    stat_report()
+    while True:
+        stat_report()
