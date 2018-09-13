@@ -13,10 +13,54 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from app.task.custom_conditions import element_has_css_class
-from app.task.solve_recaptcha import write_stat, check_exists_by_xpath, wait_between, dimention, solve_images
-from app.utils import find_report_link, watch_videos
-from app.extensions import celery, client
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
+from pymongo import MongoClient
+
+client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
+db = client['test-yt']
+
+def find_report_link(s):
+    """
+    Ge report link from url
+    :param s:
+    :return:
+    """
+    first = 'https://www.youtube.com/channel/'
+    try:
+        start = s.index(first) + len(first) + 2
+        report_link = 'https://www.youtube.com/reportabuse?u={}'.format(s[start:])
+        return report_link
+    except ValueError:
+        return None
+
+
+def watch_videos(browser, href):
+    ActionChains(browser) \
+        .key_up(Keys.CONTROL) \
+        .send_keys('t') \
+        .key_up(Keys.CONTROL) \
+        .perform()
+    browser.get(href)
+
+
+class element_has_css_class(object):
+    """
+    An expectation for checking that an element has a particular css class.
+    locator - used to find the element
+    returns the WebElement once it has the particular css class
+    """
+
+    def __init__(self, locator, css_class):
+        self.locator = locator
+        self.css_class = css_class
+
+    def __call__(self, driver):
+        element = driver.find_element(*self.locator)  # Finding the referenced element
+        if self.css_class in element.get_attribute("class"):
+            return element
+        else:
+            return False
 
 api_key = '094c2420f179731334edccbf176dbd79'
 capabilities = DesiredCapabilities.FIREFOX.copy()
@@ -264,15 +308,13 @@ def change_language():
         print('Can not change language: {}'.format(str(ex)))
 
 
-@celery.task()
 def print_hello():
     print('start')
 
 
-@celery.task()
 def stat_report():
     global login_status
-    channels = client.db.channel.find({'status': 'active'})
+    channels = db.channel.find({'status': 'active'})
     channels = list(channels)
     if len(channels) == 0:
         print('Channel list is empty')
@@ -280,7 +322,7 @@ def stat_report():
     channel = random.choice(channels)
 
     while not login_status:
-        tmp_emails = client.db.email.find({'status': True})
+        tmp_emails = db.email.find({'status': True})
         tmp_emails = list(tmp_emails)
         if len(tmp_emails) == 0:
             print('Can not find any email')
@@ -297,14 +339,14 @@ def stat_report():
             return
         elif login_status == 'disabled':
             print('{} is disabled'.format(email))
-            client.db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+            db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
             return
 
     try:
         if channel is not None:
-            client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': True}})
+            db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': True}})
             print(channel['name'])
-            strategy = client.db.strategy.find_one({'_id': ObjectId(channel['strategy'])})
+            strategy = db.strategy.find_one({'_id': ObjectId(channel['strategy'])})
             if strategy is not None:
                 report_reason_1 = strategy['issue']
                 report_reason_2 = strategy['sub_issue']
@@ -321,7 +363,7 @@ def stat_report():
                     if submit_report_status == '1':
                         google_key = get_key_recaptcha()
                         if google_key is None:
-                            client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
+                            db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
                         current_url = browser.current_url
                         captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
@@ -344,21 +386,21 @@ def stat_report():
                                 section = browser.find_element_by_css_selector('.section > p:nth-child(1)')
                                 if section and section.text == 'Thank You.':
                                     print('Submit report successfully')
-                                    client.db.channel.update({'_id': channel['_id']},
+                                    db.channel.update({'_id': channel['_id']},
                                                              {'$inc': {'count_success': 1}})
                             except Exception as ex:
                                 print('Submit report failed: {}'.format(str(ex)))
-                                client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
+                                db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
                         else:
-                            client.db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
+                            db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
                     elif submit_report_status == '2':
                         print('Channel suspended save to database')
-                        client.db.channel.update({'_id': channel['_id']}, {'$set': {'status': 'Suspended'}})
+                        db.channel.update({'_id': channel['_id']}, {'$set': {'status': 'Suspended'}})
                         return
-                client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
+                db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
 
     except Exception as ex:
-        client.db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
+        db.channel.update({'_id': channel['_id']}, {'$set': {'reporting': False}})
         print('Exception: {}'.format(str(ex)))
