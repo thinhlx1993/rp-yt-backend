@@ -288,8 +288,8 @@ def change_language(browser):
         
 
 def stat_report(browser, db, login_status):
-    totals_channel = db.channel.count_documents({'status': 'active'})
-    channel = db.channel.find({'status': 'active'}).limit(-1).skip(random.randint(0, totals_channel)).next()
+    totals_channel = db.channel.find({'status': 'active'})
+    channel = random.choice(list(totals_channel))
 
     while True:
         totals_emails = db.email.count_documents({'status': True})
@@ -460,18 +460,23 @@ def create_browser(proxy, user_agent):
     
 
 def start_app():
-    db = create_db_connection()
-    proxy = None
-#    print('Get Proxy Server')
-#    while True:
-#        proxy = get_proxy()
-#        if proxy is not None:
-#            break
-        
-    print('Start Report')    
-    totals_agent = db.agents.count_documents({'status': True})
-    agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals_agent)).next()
-    browser = create_browser(proxy, agent)
-    login_status = False
-    stat_report(browser, db, login_status)
-    browser.quit()
+    try:
+        db = create_db_connection()
+        proxy = None
+    #    print('Get Proxy Server')
+    #    while True:
+    #        proxy = get_proxy()
+    #        if proxy is not None:
+    #            break
+            
+        print('Start Report')    
+        totals_agent = db.agents.count_documents({'status': True})
+        agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals_agent)).next()
+        browser = create_browser(proxy, agent)
+        login_status = False
+        stat_report(browser, db, login_status)
+        browser.quit()
+    except Exception as ex:
+        print(str(ex))
+        if browser:
+            browser.quit()
