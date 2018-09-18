@@ -17,6 +17,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 from pymongo import MongoClient
+api_key = '094c2420f179731334edccbf176dbd79'
 
 
 def find_report_link(s):
@@ -62,7 +63,7 @@ class element_has_css_class(object):
             return False
         
 
-def login(email, password, recovery_email, phone):
+def login(browser, email, password, recovery_email, phone):
     try:
         print(phone)
         browser.get('https://www.youtube.com/')
@@ -150,7 +151,7 @@ def login(email, password, recovery_email, phone):
         return 'fail'
 
 
-def submit_report(report_channel, report_reason_1, report_reason_2, report_note):
+def submit_report(browser, report_channel, report_reason_1, report_reason_2, report_note):
     browser.get(report_channel + '/videos')
     sleep(5)
     # check if channel die
@@ -166,7 +167,7 @@ def submit_report(report_channel, report_reason_1, report_reason_2, report_note)
         videos = browser.find_elements_by_id('video-title')
         video = random.choice(videos)
         href = video.get_attribute('href')
-        watch_videos(browser, href)
+        # watch_videos(browser, href)
 
         sleep(random.randint(0, 10))
 
@@ -181,7 +182,7 @@ def submit_report(report_channel, report_reason_1, report_reason_2, report_note)
     try:
         report_link = find_report_link(report_channel)
         browser.get(report_link)
-        change_language()
+        change_language(browser)
         WebDriverWait(browser, 30).until(
             EC.presence_of_element_located((By.ID, "tab-start")))
         tab_start = browser.find_element_by_id('tab-start')
@@ -225,7 +226,7 @@ def submit_report(report_channel, report_reason_1, report_reason_2, report_note)
         return '0'
 
 
-def get_key_recaptcha():
+def get_key_recaptcha(browser):
     try:
         browser.switch_to.default_content()
         iframe_switch = browser.find_element(By.XPATH,
@@ -271,7 +272,7 @@ def key_resolver_captcha(api_url):
         return None
 
 
-def change_language():
+def change_language(browser):
     try:
         while True:
             lang_btn = browser.find_element_by_id('yt-picker-language-button')
@@ -286,30 +287,21 @@ def change_language():
         print('Change lang failed: {}'.format(str(ex)))
         
 
-def stat_report():
-    global login_status
-    channels = db.channel.find({'status': 'active'})
-    channels = list(channels)
-    if len(channels) == 0:
-        print('Channel list is empty')
-        return
-    channel = random.choice(channels)
+def stat_report(browser, db, login_status):
+    totals_channel = db.channel.count_documents({'status': 'active'})
+    channel = db.channel.find({'status': 'active'}).limit(-1).skip(random.randint(0, totals_channel)).next()
 
-    while not login_status:
-        tmp_emails = db.email.find({'status': True})
-        tmp_emails = list(tmp_emails)
-        if len(tmp_emails) == 0:
-            print('Can not find any email')
-            return
-        tmp_email = random.choice(tmp_emails)
+    while True:
+        totals_emails = db.email.count_documents({'status': True})
+        tmp_email = db.email.find({'status': True}).limit(-1).skip(random.randint(0, totals_emails)).next()
         email = tmp_email['email']
         password = tmp_email['password']
         recovery_email = tmp_email['recovery_email']
         phone = tmp_email['phone']
-        login_response = login(email, password, recovery_email, phone)
+        login_response = login(browser, email, password, recovery_email, phone)
         if login_response == 'success':
             print('Logged in to youtube')
-            login_status = True
+            break
         elif login_response == 'fail':
             print('{} can not login to youtube'.format(email))
             return
@@ -332,18 +324,18 @@ def stat_report():
                 # report three times
                 for i in range(3):
                     submit_report_status = submit_report(
+                        browser,
                         report_channel,
                         report_reason_1, report_reason_2,
                         report_note)
 
                     if submit_report_status == '1':
-                        google_key = get_key_recaptcha()
+                        google_key = get_key_recaptcha(browser)
                         if google_key is None:
                             db.channel.update({'_id': channel['_id']}, {'$inc': {'count_fail': 1}})
 
                         current_url = browser.current_url
-                        captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
-                            api_key, google_key, current_url)
+                        captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(api_key, google_key, current_url)
                         key_resolver = key_resolver_captcha(captcha_resolver_api)
                         if key_resolver is not None:
 
@@ -389,20 +381,20 @@ def create_db_connection():
 
 
 def get_proxy():
-    crawler_proxy = create_browser()
-    crawler_proxy.get('https://free-proxy-list.net/')
-    items = crawler_proxy.find_elements_by_class_name('odd')
-    items += crawler_proxy.find_elements_by_class_name('even')
-    data = []
-    for item in items:
-        tds = item.find_elements_by_tag_name('td')
-        # print("{}:{}".format(tds[0].text, tds[1].text))
-        data.append({"host": tds[0].text, "port": tds[1].text})
+    # crawler_proxy = create_browser(None)
+    # crawler_proxy.get('https://free-proxy-list.net/')
+    # items = crawler_proxy.find_elements_by_class_name('odd')
+    # items += crawler_proxy.find_elements_by_class_name('even')
+    # data = []
+    # for item in items:
+    #     tds = item.find_elements_by_tag_name('td')
+    #     # print("{}:{}".format(tds[0].text, tds[1].text))
+    #     data.append({"host": tds[0].text, "port": tds[1].text})
 
-    crawler_proxy.quit()
-    for item in data:
-        if ping_ok(item['host']):
-            return item
+    # crawler_proxy.quit()
+    # for item in data:
+    #     if ping_ok(item['host']):
+    #         return item
     return None
 
 
@@ -422,7 +414,7 @@ def ping_ok(sHost):
             return False
         
         
-def create_browser():
+def create_browser(proxy, user_agent):
     capabilities = DesiredCapabilities.FIREFOX.copy()
     capabilities['marionette'] = True
     capabilities['acceptSslCerts'] = True
@@ -432,6 +424,7 @@ def create_browser():
     profile.set_preference("browser.cache.memory.enable", False)
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
+    profile.set_preference("general.useragent.override", user_agent['name'])
     profile.set_preference("media.volume_scale", "0.0")
     if proxy is not None:
         profile.set_preference("network.proxy.type", 1)
@@ -450,12 +443,12 @@ def create_browser():
     
     print(sys.platform)
     if sys.platform == 'win32':
-        geckodriver = '../../etc/geckodriver-v0.21.0-win64/geckodriver.exe'
+        geckodriver = 'etc/geckodriver-v0.21.0-win64/geckodriver.exe'
         binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
     else:
         geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
         binary = '/usr/bin/firefox'
-        options.add_argument('-headless')
+        options.add_argument('--headless')
     
     browser = webdriver.Firefox(
         executable_path=geckodriver,
@@ -466,9 +459,8 @@ def create_browser():
     return browser
     
 
-if __name__ == '__main__':
+def start_app():
     db = create_db_connection()
-    api_key = '094c2420f179731334edccbf176dbd79'
     proxy = None
 #    print('Get Proxy Server')
 #    while True:
@@ -477,7 +469,9 @@ if __name__ == '__main__':
 #            break
         
     print('Start Report')    
-    browser = create_browser()
+    totals_agent = db.agents.count_documents({'status': True})
+    agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals_agent)).next()
+    browser = create_browser(proxy, agent)
     login_status = False
-    while True:
-        stat_report()
+    stat_report(browser, db, login_status)
+    browser.quit()
