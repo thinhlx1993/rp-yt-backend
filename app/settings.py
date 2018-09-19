@@ -26,10 +26,10 @@ class ProdConfig(Config):
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
     # MongoDB config
     MONGO_DBNAME = 'test-yt'
-    MONGO_HOST = '167.99.145.231'
-    MONGO_USERNAME = 'admin'
-    MONGO_PASSWORD = '1234567a@'
-    MONGO_AUTH_SOURCE = 'admin'
+    MONGO_HOST = 'localhost'
+    # MONGO_USERNAME = 'admin'
+    # MONGO_PASSWORD = '1234567a@'
+    # MONGO_AUTH_SOURCE = 'admin'
     MONGO_CONNECT = False
     CONNECT = False
 
@@ -51,9 +51,9 @@ class DevConfig(Config):
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
     # MongoDB config
     MONGO_DBNAME = 'test-yt'
-    MONGO_HOST = '167.99.145.231'
-    MONGO_USERNAME = 'admin'
-    MONGO_PASSWORD = '1234567a@'
-    MONGO_AUTH_SOURCE = 'admin'
+    MONGO_HOST = 'localhost'
+    # MONGO_USERNAME = 'admin'
+    # MONGO_PASSWORD = '1234567a@'
+    # MONGO_AUTH_SOURCE = 'admin'
     MONGO_CONNECT = False
     CONNECT = False

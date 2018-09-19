@@ -25,7 +25,7 @@ def run_command(command):
 
 def ReportingThread():
     while True:
-        client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
+        client = MongoClient()
         db = client['test-yt']
         totals_mac = db.mac_address.count_documents({})
         mac = db.mac_address.find({}).limit(-1).skip(random.randint(0, totals_mac)).next()
@@ -63,7 +63,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         # start flask server
         _thread.start_new_thread(FlaskThread,())
         webbrowser.open_new_tab('http://localhost:5000')
-        
+        webbrowser.open_new_tab('https://whoer.net')
+
 
     def exit(self):
         QtCore.QCoreApplication.exit()
