@@ -24,6 +24,29 @@ def run_command(command):
     # print(p.returncode) # is 0 if success
 
 def ReportingThread():
+    # while True:
+    #     client = MongoClient()
+    #     db = client['test-yt']
+    #     totals_mac = db.mac_address.count_documents({})
+    #     mac = db.mac_address.find({}).limit(-1).skip(random.randint(0, totals_mac)).next()
+    #     mac_address = mac['mac'].replace(':', '')
+    #     fh = open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w")
+    #     fh.write("netsh interface set interface \"Mobile\" disable \n")
+    #     fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0001 /v NetworkAddress /d ")
+    #     fh.write(mac_address)
+    #     fh.write(" /f \n")
+    #     fh.write("netsh interface set interface \"Mobile\" enable")
+    #     fh.close()
+    #     client.close()
+    #     run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat")
+    #     open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w").close()
+    #     print('Connecting')
+    #     run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\start.bat")
+    #     time.sleep(10)
+    #     start_app()
+    #     print('Stopping')
+    #     run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\stop.bat")
+    #     time.sleep(10)
     while True:
         client = MongoClient()
         db = client['test-yt']
@@ -31,22 +54,20 @@ def ReportingThread():
         mac = db.mac_address.find({}).limit(-1).skip(random.randint(0, totals_mac)).next()
         mac_address = mac['mac'].replace(':', '')
         fh = open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w")
-        fh.write("netsh interface set interface \"Mobile\" disable \n")
-        fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0001 /v NetworkAddress /d ")
+        fh.write("netsh interface set interface \"Ethernet 2\" disable \n")
+        fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0014 /v NetworkAddress /d ")
         fh.write(mac_address)
         fh.write(" /f \n")
-        fh.write("netsh interface set interface \"Mobile\" enable")
+        fh.write("netsh interface set interface \"Ethernet 2\" enable")
         fh.close()
         client.close()
+        print('Connecting')
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat")
         open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w").close()
-        print('Connecting')
-        run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\start.bat")
+        run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\change_ip_hma.bat")
         time.sleep(10)
         start_app()
-        print('Stopping')
-        run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\stop.bat")
-        time.sleep(10)
+
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
