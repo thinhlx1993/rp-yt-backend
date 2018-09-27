@@ -23,7 +23,7 @@ def run_command(command):
     return p.returncode
     # print(p.returncode) # is 0 if success
 
-def report_user_func():
+def fake_ip_by_dcom():
     # report user
     while True:
         client = MongoClient()
@@ -50,7 +50,7 @@ def report_user_func():
         time.sleep(10)
 
 
-def report_video_func():
+def fake_ip_by_hma():
     while True:
         client = MongoClient()
         db = client['test-yt']
@@ -74,9 +74,9 @@ def report_video_func():
 
 
 def ReportingThread():
-    # report_user_func()
+    fake_ip_by_dcom()
     # Report video
-    report_video_func()
+    # report_video_func()
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
@@ -93,8 +93,8 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         
         # start flask server
         _thread.start_new_thread(FlaskThread,())
-        webbrowser.open_new_tab('http://localhost:5000')
-        webbrowser.open_new_tab('https://whoer.net')
+        # webbrowser.open_new_tab('http://localhost:5000')
+        # webbrowser.open_new_tab('https://whoer.net')
 
 
     def exit(self):
