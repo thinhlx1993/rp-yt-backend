@@ -99,15 +99,20 @@ def login(browser, email, password, recovery_email, phone):
                     print('Confirm your recovery phone number')
                     recovery_option.click()
                     sleep(2)
-                    while True:
+                    loop_time = 0
+                    while loop_time < 15:
                         try:
                             phone_number_inp = browser.find_element_by_id('phoneNumberId')
                             phone_number_inp.click()
+                            print(phone)
                             phone_number_inp.send_keys(phone)
+                            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "next")))
                             next_btn = browser.find_element_by_id('next')
                             browser.execute_script("arguments[0].click();", next_btn)
                             break
                         except:
+                            phone_number_inp.clear()
+                            loop_time+=1
                             pass
                     
                     
@@ -255,6 +260,7 @@ def key_resolver_captcha(api_url):
                 try:
                     response = requests.get(resolver_api)
                     response = response.text
+                    print(response.text)
                     if 'OK' in response:
                         response_key = response[3:]
                         break
@@ -349,19 +355,19 @@ def stat_report(browser, db, login_status):
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
         report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
         for reason in report_reason:
-            if reason.text == 'Hateful or abusive content':
+            if reason.text == 'Sexual content':
                 reason.click()
                 
         sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "paper-dropdown-menu.style-scope:nth-child(8) > paper-menu-button:nth-child(2) > div:nth-child(1) > div:nth-child(1) > paper-input:nth-child(2) > paper-input-container:nth-child(1) > div:nth-child(2) > iron-icon:nth-child(2)")))
-        dropdown_btn = browser.find_element_by_css_selector('paper-dropdown-menu.style-scope:nth-child(8) > paper-menu-button:nth-child(2) > div:nth-child(1) > div:nth-child(1) > paper-input:nth-child(2) > paper-input-container:nth-child(1) > div:nth-child(2) > iron-icon:nth-child(2)')
+        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon")))
+        dropdown_btn = browser.find_element_by_css_selector('#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon')
         dropdown_btn.click()
         
         sleep(2)
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
         reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
         for item in reason:
-            if item.text == 'Abusive title or description':
+            if item.text == 'Other sexual content':
                 item.click()
                 
         sleep(2)
@@ -372,11 +378,24 @@ def stat_report(browser, db, login_status):
                 btn.click()
                 
         sleep(2)
-        details_report = '123'
+        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-8")))
+        input_8 = browser.find_element_by_css_selector('#input-8')
+        input_8.clear()
+        input_8.send_keys(video['first_time'])
+
+        sleep(2)
+        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-9")))
+        input_9 = browser.find_element_by_css_selector('#input-9')
+        input_9.clear()
+        input_9.send_keys(video['second_time'])
+
+
+        sleep(2)
+        details_report = 'this video contains sexual content'
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
         textarea = browser.find_element_by_id('textarea')
         textarea.send_keys(details_report)
-        
+        # 
         
         sleep(2)
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-button-renderer.style-blue-text.size-default")))
@@ -398,7 +417,7 @@ def stat_report(browser, db, login_status):
         print('Exception: {}'.format(str(ex)))
 
 def create_db_connection():
-    client = MongoClient('167.99.145.231', username='admin', password='1234567a@', authSource='admin')
+    client = MongoClient()
     db = client['test-yt']
     return db
 
@@ -479,6 +498,7 @@ def create_browser(proxy, user_agent):
         capabilities=capabilities,
         firefox_binary=binary,
         firefox_profile=profile)
+    browser.maximize_window()
     return browser
     
 
