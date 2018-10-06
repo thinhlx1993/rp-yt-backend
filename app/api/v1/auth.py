@@ -2,13 +2,14 @@ from bson import ObjectId
 from datetime import timedelta
 from flask import Blueprint
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.extensions import jwt, client
+from app.extensions import jwt
 from app.utils import parse_req, FieldString, send_result, send_error
 from flask_jwt_extended import (
     jwt_required, create_access_token, jwt_refresh_token_required, get_jwt_identity, create_refresh_token,
     get_raw_jwt
 )
 
+from app.model import User
 
 ACCESS_EXPIRES = timedelta(days=7)
 REFRESH_EXPIRES = timedelta(days=30)
@@ -36,11 +37,11 @@ def login():
     except Exception as ex:
         return send_error(message='json parser error', code=442)
 
-    user = client.db.user.find_one({'username': username})
+    user = User.find_by_username(username=username)
     if user:
-        if check_password_hash(user['password'], password):
-            access_token = create_access_token(identity=str(user['_id']), expires_delta=ACCESS_EXPIRES)
-            refresh_token = create_refresh_token(identity=str(user['_id']), expires_delta=REFRESH_EXPIRES)
+        if check_password_hash(user.password, password):
+            access_token = create_access_token(identity=user.id, expires_delta=ACCESS_EXPIRES)
+            refresh_token = create_refresh_token(identity=user.id, expires_delta=REFRESH_EXPIRES)
             return send_result(data={'access_token': access_token,
                                      'refresh_token': refresh_token},
                                message='Successfully logged in to the Dashboard')
@@ -69,13 +70,14 @@ def change_password():
     except:
         return send_error(message='json parser error', code=442)
 
-    user = client.db.user.find_one({'_id': ObjectId(user_id)})
+    user = User.find_by_id(user_id=user_id)
     if user is None:
         return send_error(message='We can not found user', code=401)
 
     if check_password_hash(user['password'], password):
         if len(password) > 5:
-            client.db.user.update_one({'_id': user['_id']}, {'$set': {'password': generate_password_hash(new_password)}})
+            user.password = generate_password_hash(new_password)
+            user.save_to_db()
             return send_result(message='Password changed! Please login', code=401)
         else:
             return send_error(message='Password must be at least 6 characters long')

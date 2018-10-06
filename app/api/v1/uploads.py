@@ -1,8 +1,7 @@
 import pandas as pd
 from flask import Blueprint, request
-from app.extensions import client
 from app.utils import send_result, send_error
-
+from app.model import Email
 api = Blueprint('uploads', __name__)
 
 
@@ -28,21 +27,19 @@ def upload_email():
     new_email = 0
     error_email = 0
     for index, row in data_xls.iterrows():
-        email = dict(
-            email='',
-            password='',
-            recovery_email='',
-            date=''
+        email = Email(
+            email=row.get('email'),
+            password=row.get('password'),
+            recovery_email=row.get('recovery_email'),
+            date=row.get('date'),
+            phone=row.get('phone'),
+            status=True
         )
-        for key_index, key in enumerate(keys):
-            if key in row.keys():
-                email[key] = row[key]
 
-        email_exist = client.db.email.find_one({'email': email['email']})
-        if not email_exist and email['email'] != '':
+        email_exist = Email.find_by_email(email.email)
+        if not email_exist and email.email != '':
             new_email += 1
-            email['status'] = True
-            client.db.email.insert_one(email)
+            email.save_to_db()
         else:
             error_email += 1
 

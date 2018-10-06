@@ -17,21 +17,14 @@ class ProdConfig(Config):
     DEBUG_TB_ENABLED = False  # Disable Debug toolbar
     HOST = '0.0.0.0'
     TEMPLATES_AUTO_RELOAD = False
-    # Celery background task config
-    CELERY_BROKER_URL = 'redis://:1234567a@@167.99.145.231:6379/0'
-    CELERY_BACKEND_URL = 'redis://:1234567a@@167.99.145.231:6379/0'
     # JWT Config
     JWT_SECRET_KEY = '1234567a@@'
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
-    # MongoDB config
+    # SQL Alchemy config
+    SQLALCHEMY_DATABASE_URI = r'sqlite:///../etc/db/prd.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     MONGO_DBNAME = 'test-yt'
-    MONGO_HOST = 'localhost'
-    # MONGO_USERNAME = 'admin'
-    # MONGO_PASSWORD = '1234567a@'
-    # MONGO_AUTH_SOURCE = 'admin'
-    MONGO_CONNECT = False
-    CONNECT = False
 
 
 class DevConfig(Config):
@@ -42,18 +35,11 @@ class DevConfig(Config):
     DEBUG_TB_ENABLED = True  # Disable Debug toolbar
     TEMPLATES_AUTO_RELOAD = True
     HOST = '0.0.0.0'
-    # Celery background task config
-    CELERY_BROKER_URL = 'redis://:1234567a@@167.99.145.231:6379/1'
-    CELERY_BACKEND_URL = 'redis://:1234567a@@167.99.145.231:6379/1'
     # JWT Config
     JWT_SECRET_KEY = '1234567a@@'
     JWT_BLACKLIST_ENABLED = True
     JWT_BLACKLIST_TOKEN_CHECKS = ['access', 'refresh']
-    # MongoDB config
+    # SQL Alchemy config
+    SQLALCHEMY_DATABASE_URI = r'sqlite:///../etc/db/prd.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     MONGO_DBNAME = 'test-yt'
-    MONGO_HOST = 'localhost'
-    # MONGO_USERNAME = 'admin'
-    # MONGO_PASSWORD = '1234567a@'
-    # MONGO_AUTH_SOURCE = 'admin'
-    MONGO_CONNECT = False
-    CONNECT = False

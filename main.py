@@ -8,13 +8,50 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 from app.app import create_app
 from app.settings import DevConfig, ProdConfig, os
 from app.browser.report_video import start_app
-from pymongo import MongoClient
+from sqlalchemy import create_engine
+engine = create_engine('sqlite:///etc/db/prd.db', echo=True)
+from sqlalchemy.ext.declarative import declarative_base
+from  sqlalchemy.sql.expression import func, select
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, Text
+Base = declarative_base()
+Session = sessionmaker(bind=engine)
+session = Session()
+
+
+class Mac(Base):
+    __tablename__ = 'mac'
+    id = Column(Integer, primary_key=True)
+    mac = Column(Text)
+    created_date = Column(Integer)
+
+    @classmethod
+    def find_random(cls):
+        rand = random.randrange(0, session.query(Mac).count())
+        row = session.query(Mac)[rand]
+        return row
+
+    @classmethod
+    def find_by_id(cls, agent_id):
+        return cls.query.filter_by(id=agent_id, status=True).first()
+
+    @classmethod
+    def find_by_name(cls, name):
+        return cls.query.filter_by(name=name, status=True).first()
+
+    def save_to_db(self):
+        session.add(self)
+        session.commit()
+
+    def delete_from_db(self):
+        session.delete(self)
+        session.commit()
 
 
 def FlaskThread():
     config = DevConfig if os.environ.get('FLASK_DEBUG') == '1' else ProdConfig
     application = create_app(config_object=config, name='server')
-    application.run(port=5000, use_reloader=False, debug = False)
+    application.run(port=5000, use_reloader=False, debug=False)
 
 
 def run_command(command):
@@ -23,14 +60,12 @@ def run_command(command):
     return p.returncode
     # print(p.returncode) # is 0 if success
 
+
 def fake_ip_by_dcom():
     # report user
     while True:
-        client = MongoClient()
-        db = client['test-yt']
-        totals_mac = db.mac_address.count_documents({})
-        mac = db.mac_address.find({}).limit(-1).skip(random.randint(0, totals_mac)).next()
-        mac_address = mac['mac'].replace(':', '')
+        mac = Mac.find_random()
+        mac_address = mac.mac.replace(':', '')
         fh = open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w")
         fh.write("netsh interface set interface \"Mobile\" disable \n")
         fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0001 /v NetworkAddress /d ")
@@ -38,13 +73,12 @@ def fake_ip_by_dcom():
         fh.write(" /f \n")
         fh.write("netsh interface set interface \"Mobile\" enable")
         fh.close()
-        client.close()
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat")
         open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w").close()
         print('Connecting')
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\start.bat")
         time.sleep(10)
-        start_app()
+        start_app(session)
         print('Stopping')
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\stop.bat")
         time.sleep(10)
@@ -52,11 +86,8 @@ def fake_ip_by_dcom():
 
 def fake_ip_by_hma():
     while True:
-        client = MongoClient()
-        db = client['test-yt']
-        totals_mac = db.mac_address.count_documents({})
-        mac = db.mac_address.find({}).limit(-1).skip(random.randint(0, totals_mac)).next()
-        mac_address = mac['mac'].replace(':', '')
+        mac = Mac.find_random()
+        mac_address = mac.mac.replace(':', '')
         fh = open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w")
         fh.write("netsh interface set interface \"Ethernet 2\" disable \n")
         fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0014 /v NetworkAddress /d ")
@@ -64,19 +95,16 @@ def fake_ip_by_hma():
         fh.write(" /f \n")
         fh.write("netsh interface set interface \"Ethernet 2\" enable")
         fh.close()
-        client.close()
         print('Connecting')
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat")
         open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w").close()
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\change_ip_hma.bat")
         time.sleep(30)
-        start_app()
+        start_app(session)
 
 
 def ReportingThread():
     fake_ip_by_dcom()
-    # Report video
-    # report_video_func()
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):

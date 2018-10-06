@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
 import logging
 import threading
 import traceback
 from time import strftime
 from flask import Flask, request
-# from app.ui import Window
 from app.api import v1 as api_v1
-from app.extensions import jwt, client, app_log_handler, celery
+from app.extensions import jwt, db, app_log_handler, client
 from app.settings import ProdConfig
-# from PyQt5.QtWidgets import (QApplication, QMessageBox, QSystemTrayIcon)
 
 
 def create_app(config_object=ProdConfig, name='server'):
@@ -56,9 +53,10 @@ def register_extensions(app):
     :param app:
     :return:
     """
+    db.app = app
+    db.init_app(app)
     client.app = app
     client.init_app(app)
-    celery.init_app(app)
     jwt.init_app(app)
     if os.environ.get('FLASK_DEBUG') == '0':
         # logger
@@ -107,6 +105,6 @@ def register_blueprints(app):
     app.register_blueprint(api_v1.uploads.api, url_prefix='/api/v1/uploads')
     app.register_blueprint(api_v1.email.api, url_prefix='/api/v1/email')
     app.register_blueprint(api_v1.strategy.api, url_prefix='/api/v1/strategy')
-    app.register_blueprint(api_v1.channel.api, url_prefix='/api/v1/channel')
-    app.register_blueprint(api_v1.views.api, url_prefix='/api/v1/views')
-    app.register_blueprint(api_v1.user_agent.api, url_prefix='/api/v1/agents')
+    # app.register_blueprint(api_v1.channel.api, url_prefix='/api/v1/channel')
+    # app.register_blueprint(api_v1.views.api, url_prefix='/api/v1/views')
+    # app.register_blueprint(api_v1.user_agent.api, url_prefix='/api/v1/agents')

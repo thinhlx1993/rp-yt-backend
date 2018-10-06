@@ -5,9 +5,9 @@ from bson import ObjectId
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from marshmallow import fields
 from datetime import timedelta
-from app.extensions import client
 from werkzeug.security import generate_password_hash
 from app.utils import send_result, parse_req, send_error, FieldString
+from app.model import User
 
 ACCESS_EXPIRES = timedelta(minutes=15)
 REFRESH_EXPIRES = timedelta(days=1)
@@ -29,19 +29,15 @@ def get_users():
     except Exception as ex:
         return send_error(message='Json parse error')
 
-    query = dict()
-    if search and search != '':
-        query['username'] = {"$regex": search}
+    data, totals = User.find_by_keyword(keyword=search, page=page, page_size=page_size)
 
-    data = client.db.user.find(query).skip(page_size * page).limit(page_size)
-    totals = client.db.user.count({})
-    data = list(data)
-    for item in data:
-        item['_id'] = str(item['_id'])
-        del item['password']
+    users = []
+    for item in data.items:
+        user = item.json()
+        users.append(user)
 
     return_data = dict(
-        rows=data,
+        rows=users,
         totals=totals
     )
     return send_result(data=return_data)
@@ -55,7 +51,7 @@ def update_user():
     :return:
     """
     params = {
-        '_id': FieldString(),
+        'id': fields.Number(),
         'address': FieldString(),
         'phone': FieldString(),
         'fullname': FieldString(),
@@ -64,22 +60,20 @@ def update_user():
 
     try:
         json_data = parse_req(params)
-        _id = json_data.get('_id')
+        _id = json_data.get('id')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    user = User.find_by_id(_id)
     if user is None:
         return send_error(message='Not found user')
 
-    keys = ('address', 'phone', 'fullname', 'role')
+    user.address = json_data.get('address', None)
+    user.phone = json_data.get('phone', None)
+    user.fullname = json_data.get('fullname', None)
+    user.role = json_data.get('role', None)
 
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            user[k] = v
-
-    client.db.user.update({'_id': ObjectId(_id)}, user)
+    user.save_to_db()
     return send_result(message='Update user successfully')
 
 
@@ -102,24 +96,28 @@ def create_user():
         json_data = parse_req(params)
         username = json_data.get('username').strip().lower()
         password = json_data.get('password').strip()
+        address = json_data.get('address')
+        phone = json_data.get('phone')
+        fullname = json_data.get('fullname')
+        role = json_data.get('role')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    user = client.db.user.find_one({'username': username})
+    user = User.find_by_username(username)
     if user is not None:
         return send_error(message='Duplicate user')
 
-    keys = ('username', 'address', 'phone', 'fullname', 'role')
+    user = User(
+        username=username,
+        address=address,
+        phone=phone,
+        fullname=fullname,
+        role=role,
+        create_date=int(time.time()),
+        password=generate_password_hash(password)
+    )
 
-    user = dict()
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            user[k] = v
-
-    user['password'] = generate_password_hash(password)
-    user['create_date'] = int(time.time())
-    client.db.user.insert_one(user)
+    user.save_to_db()
     return send_result(message='Create user successfully')
 
 
@@ -135,21 +133,21 @@ def delete_user():
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    user = User.find_by_id(_id)
     if user is None:
         return send_error(message='Không thể tìm thấy người dùng này, vui lòng thử lại.')
 
-    if user['role'] != 'admin':
+    if user.role != 'admin':
         return send_error(message='Bạn không thể xóa người dùng này!')
 
-    if user['username'] == 'Administrator':
+    if user.role == 'Administrator':
         return send_error(message='Không thể xóa người dùng này!')
 
-    client.db.user.remove({'_id': ObjectId(_id)})
+    user.delete_from_db()
     return send_result(message='Đã xóa thành công.')
 
 
-@api.route('password', methods=['PUT'])
+@api.route('/password', methods=['PUT'])
 @jwt_required
 def update_password():
     """
@@ -157,24 +155,26 @@ def update_password():
     :return:
     """
     params = {
-        '_id': FieldString(),
+        'id': fields.Number(),
         'password': FieldString(),
     }
 
     try:
         json_data = parse_req(params)
-        _id = json_data.get('_id')
+        _id = json_data.get('id')
+        password = json_data.get('password')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    user = User.find_by_id(_id)
     if user is None:
         return send_error(message='Không tìm thấy người dùng, tải lại trang.')
 
-    if user['username'] != 'Administrator':
+    if user.username != 'Administrator':
         return send_error(message='Bạn không thể đổi mật khẩu, chỉ admin mới có quyền đổi.')
 
-    client.db.user.update({'_id': ObjectId(_id)}, user)
+    user.password = generate_password_hash(password)
+    user.save_to_db()
     return send_result(message='Thay đổi mật khẩu thành công.')
 
 
@@ -186,11 +186,11 @@ def get_user_info():
     :return:
     """
     _id = get_jwt_identity()
-    user = client.db.user.find_one({'_id': ObjectId(_id)})
+    user = User.find_by_id(_id)
     if user is None:
         return send_error(message='Không tìm thấy người dùng, tải lại trang.')
     return_data = dict(
-        role=user['role'],
-        username=user['username']
+        role=user.role,
+        username=user.username
     )
     return send_result(data=return_data)

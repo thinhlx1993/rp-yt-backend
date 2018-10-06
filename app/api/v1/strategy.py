@@ -3,9 +3,8 @@ from flask import Blueprint, request
 from bson import ObjectId
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
-from app.extensions import client
 from app.utils import send_result, parse_req, send_error, FieldString
-
+from app.model import Strategy
 api = Blueprint('strategy', __name__)
 
 
@@ -22,15 +21,11 @@ def get_strategy():
         search = request.args.get('search', '')
     except Exception as ex:
         return send_error(message='Parser params error')
-    query = dict()
-    if search and search != '':
-        query['name'] = {"$regex": search}
 
-    data = client.db.strategy.find(query).skip(page_size * page).limit(page_size)
-    totals = client.db.strategy.count(query)
-    data = list(data)
-    for item in data:
-        item['_id'] = str(item['_id'])
+    tmp, totals = Strategy.find_by_keyword(keyword=search, page=page, page_size=page_size)
+    data = []
+    for item in tmp.items:
+        data.append(item.json())
 
     return_data = dict(
         rows=data,
@@ -46,10 +41,10 @@ def get_strategies():
     Using for get all data of emails
     :return:
     """
-    data = client.db.strategy.find()
-    data = list(data)
-    for item in data:
-        item['_id'] = str(item['_id'])
+    tmp = Strategy.find_all()
+    data = []
+    for item in tmp.items:
+        data.append(item.json*())
 
     return send_result(data=data)
 
@@ -62,7 +57,7 @@ def update_strategy():
     :return:
     """
     params = {
-        '_id': FieldString(),
+        'id': fields.Number(),
         'name': FieldString(),
         'issue': FieldString(),
         'sub_issue': FieldString(),
@@ -71,22 +66,24 @@ def update_strategy():
 
     try:
         json_data = parse_req(params)
-        _id = json_data.get('_id')
+        strategy_id = json_data.get('id')
+        name = json_data.get('name')
+        issue = json_data.get('issue')
+        sub_issue = json_data.get('sub_issue')
+        note = json_data.get('note')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    strategy = client.db.strategy.find_one({'_id': ObjectId(_id)})
+    strategy = Strategy.find_by_id(strategy_id=strategy_id)
     if strategy is None:
         return send_error(message='Not found')
 
-    keys = ('name', 'issue', 'sub_issue', 'note')
+    strategy.name = name
+    strategy.issue = issue
+    strategy.sub_issue = sub_issue
+    strategy.note = note
+    strategy.save_to_db()
 
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            strategy[k] = v
-
-    client.db.strategy.update({'_id': ObjectId(_id)}, strategy)
     return send_result(message='Cập nhật chiến dịch thành công.')
 
 
@@ -106,23 +103,24 @@ def create_strategy():
     try:
         json_data = parse_req(params)
         new_name = json_data.get('name').strip().lower()
+        issue = json_data.get('issue')
+        sub_issue = json_data.get('sub_issue')
+        note = json_data.get('note')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    strategy = client.db.strategy.find_one({'email': new_name})
+    strategy = Strategy.find_by_name(name=new_name)
     if strategy is not None:
         return send_error(message='Duplicate strategy')
 
-    keys = ('name', 'issue', 'sub_issue', 'note')
-
-    strategy = dict()
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            strategy[k] = v
-
-    strategy['create_date'] = int(time.time())
-    client.db.strategy.insert_one(strategy)
+    strategy = Strategy(
+        name=new_name,
+        issue=issue,
+        sub_issue=sub_issue,
+        note=note,
+        create_date=int(time.time())
+    )
+    strategy.save_to_db()
     return send_result(message='Tạo chiến dịch thành công.')
 
 
@@ -138,9 +136,9 @@ def delete_strategy():
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    strategy = client.db.strategy.find_one({'_id': ObjectId(_id)})
+    strategy = Strategy.find_by_id(_id)
     if strategy is None:
         return send_error(message='Không thể tìm thấy chiến dịch, vui lòng thử lại.')
 
-    client.db.strategy.remove({'_id': ObjectId(_id)})
+    strategy.delete_from_db()
     return send_result(message='Đã xóa thành công.')

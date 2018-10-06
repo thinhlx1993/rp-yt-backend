@@ -16,8 +16,73 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
-from pymongo import MongoClient
+
+from sqlalchemy.ext.declarative import declarative_base
+from  sqlalchemy.sql.expression import func, select
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import Column, Integer, Text
+from sqlalchemy import create_engine
 api_key = '094c2420f179731334edccbf176dbd79'
+engine = create_engine('sqlite:///../../etc/db/prd.db', echo=True)
+Session = sessionmaker(bind=engine)
+session = Session()
+Base = declarative_base()
+
+
+class Agent(Base):
+    __tablename__ = 'agents'
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+    created_date = Column(Integer, nullable=False)
+    status = Column(Integer, nullable=False)
+
+    @classmethod
+    def find_random(cls):
+        return cls.select.order_by(func.random())
+
+    def save_to_db(self):
+        session.add(self)
+        session.commit()
+
+    def delete_from_db(self):
+        session.delete(self)
+        session.commit()
+
+
+class Email(Base):
+    __tablename__ = 'email'
+
+    id = Column(Integer, primary_key=True)
+    password = Column(Text, nullable=False)
+    recovery_email = Column(Text)
+    status = Column(Integer, nullable=False)
+    date = Column(Text)
+    email = Column(Text, nullable=False)
+    phone = Column(Integer)
+
+    def __init__(self, password, recovery_email, status, date, email, phone):
+        self.password = password
+        self.recovery_email = recovery_email
+        self.status = status
+        self.date = date
+        self.email = email
+        self.phone = phone
+
+    def json(self):
+        return {"id": self.id, 'password': self.password, 'recovery_email': self.recovery_email, 'status': self.status,
+                'date': self.date, 'email': self.email, 'phone': self.phone}
+
+    @classmethod
+    def find_random(cls):
+        return cls.select.order_by(func.random())
+
+    def save_to_db(self):
+        session.add(self)
+        session.commit()
+
+    def delete_from_db(self):
+        session.delete(self)
+        session.commit()
 
 
 def find_report_link(s):
@@ -293,11 +358,10 @@ def change_language(browser):
         print('Change lang failed: {}'.format(str(ex)))
         
 
-def stat_report(browser, db, login_status):
+def stat_report(browser, login_status):
     while True:
-        totals_emails = db.email.count_documents({'status': True})
-        tmp_email = db.email.find({'status': True}).limit(-1).skip(random.randint(0, totals_emails)).next()
-        email = tmp_email['email']
+        tmp_email = Email.find_random()
+        email = tmp_email.email
         password = tmp_email['password']
         recovery_email = tmp_email['recovery_email']
         phone = tmp_email['phone']
@@ -416,11 +480,6 @@ def stat_report(browser, db, login_status):
         db.video.update({'_id': video['_id']}, {'$inc': {'count_fail': 1}})
         print('Exception: {}'.format(str(ex)))
 
-def create_db_connection():
-    client = MongoClient()
-    db = client['test-yt']
-    return db
-
 
 def get_proxy():
     # crawler_proxy = create_browser(None)
@@ -466,7 +525,7 @@ def create_browser(proxy, user_agent):
     profile.set_preference("browser.cache.memory.enable", False)
     profile.set_preference("browser.cache.offline.enable", False)
     profile.set_preference("network.http.use-cache", False)
-    profile.set_preference("general.useragent.override", user_agent['name'])
+    profile.set_preference("general.useragent.override", user_agent.name)
     profile.set_preference("media.volume_scale", "0.0")
     if proxy is not None:
         profile.set_preference("network.proxy.type", 1)
@@ -487,6 +546,7 @@ def create_browser(proxy, user_agent):
     if sys.platform == 'win32':
         geckodriver = 'etc/geckodriver-v0.21.0-win64/geckodriver.exe'
         binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
+        options.add_argument('--headless')
     else:
         geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
         binary = '/usr/bin/firefox'
@@ -502,16 +562,14 @@ def create_browser(proxy, user_agent):
     return browser
     
 
-def start_app():
+def start_app(session):
     try:
-        db = create_db_connection()
         proxy = None
-        print('Start Report')    
-        totals_agent = db.agents.count_documents({'status': True})
-        agent = db.agents.find({'status': True}).limit(-1).skip(random.randint(0, totals_agent)).next()
+        print('Start Report')
+        agent = Agent.find_random()
         browser = create_browser(proxy, agent)
         login_status = False
-        stat_report(browser, db, login_status)
+        stat_report(browser, login_status)
         browser.quit()
     except Exception as ex:
         print(str(ex))

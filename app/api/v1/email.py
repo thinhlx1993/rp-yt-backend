@@ -1,12 +1,8 @@
-import time
 from flask import Blueprint, request
-from bson import ObjectId
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
-from datetime import timedelta
-from app.extensions import client
 from app.utils import send_result, parse_req, send_error, FieldString
-
+from app.model import Email
 api = Blueprint('email', __name__)
 
 
@@ -27,14 +23,13 @@ def get_emails():
     if search and search != '':
         query['email'] = {"$regex": search}
 
-    data = client.db.email.find(query).skip(page_size * page).limit(page_size)
-    totals = client.db.email.count(query)
-    data = list(data)
-    for item in data:
-        item['_id'] = str(item['_id'])
+    data, totals = Email.find_by_keyword(keyword=search, page=page, page_size=page_size)
+    emails = list()
+    for item in data.items:
+        emails.append(item.json())
 
     return_data = dict(
-        rows=data,
+        rows=emails,
         totals=totals
     )
     return send_result(data=return_data)
@@ -48,7 +43,7 @@ def update_email():
     :return:
     """
     params = {
-        '_id': FieldString(),
+        'id': fields.Number,
         'email': FieldString(),
         'password': FieldString(),
         'recovery_email': FieldString(),
@@ -58,22 +53,26 @@ def update_email():
 
     try:
         json_data = parse_req(params)
-        _id = json_data.get('_id')
+        email_id = json_data.get('id')
+        password = json_data.get('password')
+        email = json_data.get('email')
+        recovery_email = json_data.get('recovery_email')
+        date = json_data.get('date')
+        phone = json_data.get('phone')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    email = client.db.email.find_one({'_id': ObjectId(_id)})
-    if email is None:
+    email_obj = Email.find_by_id(email_id)
+    if email_obj is None:
         return send_error(message='Not found email')
 
-    keys = ('email', 'password', 'recovery_email', 'date', 'phone')
+    email_obj.email = email
+    email_obj.password = password
+    email_obj.recovery_email = recovery_email
+    email_obj.date = date
+    email_obj.phone = phone
+    email_obj.save_to_db()
 
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            email[k] = v
-
-    client.db.email.update({'_id': ObjectId(_id)}, email)
     return send_result(message='Update email successfully')
 
 
@@ -94,24 +93,26 @@ def create_email():
     try:
         json_data = parse_req(params)
         new_email = json_data.get('email').strip().lower()
+        password = json_data.get('password')
+        recovery_email = json_data.get('recovery_email')
+        date = json_data.get('date')
+        phone = json_data.get('phone')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    email = client.db.email.find_one({'email': new_email})
-    if email is not None:
+    email_obj = Email.find_by_email(email=new_email)
+    if email_obj is not None:
         return send_error(message='Duplicate email')
 
-    keys = ('email', 'password', 'recovery_email', 'date', 'phone')
-
-    email = dict()
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            email[k] = v
-
-    email['create_date'] = int(time.time())
-    email['status'] = True
-    client.db.email.insert_one(email)
+    email_obj = Email(
+        email=new_email,
+        password=password,
+        recovery_email=recovery_email,
+        date=date,
+        phone=phone,
+        status=True,
+    )
+    email_obj.save_to_db()
     return send_result(message='Create email successfully')
 
 
@@ -127,9 +128,9 @@ def delete_email():
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    email = client.db.email.find_one({'_id': ObjectId(_id)})
+    email = Email.find_by_id(_id)
     if email is None:
         return send_error(message='Không thể tìm thấy email, vui lòng thử lại.')
 
-    client.db.email.remove({'_id': ObjectId(_id)})
+    email.delete_from_db()
     return send_result(message='Đã xóa thành công.')
