@@ -23,10 +23,40 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy import create_engine
 api_key = '094c2420f179731334edccbf176dbd79'
-engine = create_engine('sqlite:///../../etc/db/prd.db', echo=True)
+engine = create_engine('sqlite:///etc/db/prd.db', echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
+
+
+class Video(Base):
+    __tablename__ = 'video'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(Text, nullable=False)
+    url = Column(Text, nullable=False)
+    status = Column(Text)
+    count_success = Column(Integer)
+    count_fail = Column(Integer)
+    first_time = Column(Text)
+    second_time = Column(Text)
+
+    @classmethod
+    def find_random(cls):
+        while True:
+            rand = random.randrange(0, session.query(Video).count())
+            row = session.query(Video)[rand]
+            if row.status == 'active':
+                break
+        return row
+
+    def save_to_db(self):
+        session.add(self)
+        session.commit()
+
+    def delete_from_db(self):
+        session.delete(self)
+        session.commit()
 
 
 class Agent(Base):
@@ -38,7 +68,12 @@ class Agent(Base):
 
     @classmethod
     def find_random(cls):
-        return cls.select.order_by(func.random())
+        while True:
+            rand = random.randrange(0, session.query(Agent).count())
+            row = session.query(Agent)[rand]
+            if row.status:
+                break
+        return row
 
     def save_to_db(self):
         session.add(self)
@@ -74,7 +109,14 @@ class Email(Base):
 
     @classmethod
     def find_random(cls):
-        return cls.select.order_by(func.random())
+        rand = random.randrange(0, session.query(Email).count())
+        row = session.query(Email)[rand]
+        print(row.json())
+        return row
+
+    @classmethod
+    def find_by_status(cls, status):
+        return cls.query.filter_by(status=status).first()
 
     def save_to_db(self):
         session.add(self)
@@ -362,9 +404,9 @@ def stat_report(browser, login_status):
     while True:
         tmp_email = Email.find_random()
         email = tmp_email.email
-        password = tmp_email['password']
-        recovery_email = tmp_email['recovery_email']
-        phone = tmp_email['phone']
+        password = tmp_email.password
+        recovery_email = tmp_email.recovery_email
+        phone = tmp_email.phone
         login_response = login(browser, email, password, recovery_email, phone)
         if login_response == 'success':
             print('Logged in to youtube')
@@ -374,111 +416,110 @@ def stat_report(browser, login_status):
             return
         elif login_response == 'disabled':
             print('{} is disabled'.format(email))
-            db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+            # db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
             return
 
-    try:
-        videos = db.video.find({'status': 'active'})
-        video = random.choice(list(videos))
-        browser.get(video['url'])
-        
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
-        avatar_btn =browser.find_element_by_id('avatar-btn')
-        avatar_btn.click()
-        
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
-        lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
-        for index, btn in enumerate(lang_btns):
-            if index == 10:
-                btn.click()
-                
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
-        lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
-        lang_btn = None
-        for item in lang_item:
-            if 'English (UK)' in item.text:
-                lang_btn = item
-        if lang_btn is not None:
-            lang_btn.click()
-            
-        
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "button")))
-        buttons = browser.find_elements_by_id('button')
-        for button in buttons:
-            if button.get_attribute('aria-label') == 'More actions':
-                button.click()
-                
-        
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-menu-service-item-renderer")))
-        report_btn = browser.find_elements_by_css_selector('.style-scope.ytd-menu-service-item-renderer')
-        for btn in report_btn:
-            if btn.text == 'Report':
-                btn.click()
-        
-        sleep(5)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
-        report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
-        for reason in report_reason:
-            if reason.text == 'Sexual content':
-                reason.click()
-                
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon")))
-        dropdown_btn = browser.find_element_by_css_selector('#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon')
-        dropdown_btn.click()
-        
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
-        reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
-        for item in reason:
-            if item.text == 'Other sexual content':
-                item.click()
-                
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
-        text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
-        for btn in text_btn:
-            if btn.text == 'NEXT':
-                btn.click()
-                
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-8")))
-        input_8 = browser.find_element_by_css_selector('#input-8')
-        input_8.clear()
-        input_8.send_keys(video['first_time'])
+    video = Video.find_random()
+    if video:
+        try:
+            browser.get(video.url)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
+            avatar_btn = browser.find_element_by_id('avatar-btn')
+            avatar_btn.click()
 
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-9")))
-        input_9 = browser.find_element_by_css_selector('#input-9')
-        input_9.clear()
-        input_9.send_keys(video['second_time'])
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
+            lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
+            for index, btn in enumerate(lang_btns):
+                if index == 10:
+                    btn.click()
+
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
+            lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
+            lang_btn = None
+            for item in lang_item:
+                if 'English (UK)' in item.text:
+                    lang_btn = item
+            if lang_btn is not None:
+                lang_btn.click()
+
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "button")))
+            buttons = browser.find_elements_by_id('button')
+            for button in buttons:
+                if button.get_attribute('aria-label') == 'More actions':
+                    button.click()
+
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-menu-service-item-renderer")))
+            report_btn = browser.find_elements_by_css_selector('.style-scope.ytd-menu-service-item-renderer')
+            for btn in report_btn:
+                if btn.text == 'Report':
+                    btn.click()
+
+            sleep(5)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
+            report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
+            for reason in report_reason:
+                if reason.text == 'Sexual content':
+                    reason.click()
+
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon")))
+            dropdown_btn = browser.find_element_by_css_selector('#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon')
+            dropdown_btn.click()
+
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
+            reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
+            for item in reason:
+                if item.text == 'Other sexual content':
+                    item.click()
+
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
+            text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
+            for btn in text_btn:
+                if btn.text == 'NEXT':
+                    btn.click()
+
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-8")))
+            input_8 = browser.find_element_by_css_selector('#input-8')
+            input_8.clear()
+            input_8.send_keys(video['first_time'])
+
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-9")))
+            input_9 = browser.find_element_by_css_selector('#input-9')
+            input_9.clear()
+            input_9.send_keys(video['second_time'])
 
 
-        sleep(2)
-        details_report = 'this video contains sexual content'
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
-        textarea = browser.find_element_by_id('textarea')
-        textarea.send_keys(details_report)
-        # 
-        
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-button-renderer.style-blue-text.size-default")))
-        text_btn = browser.find_elements_by_css_selector('.style-scope.ytd-button-renderer.style-blue-text.size-default')
-        for btn in text_btn:
-            if btn.text == 'REPORT':
-                browser.execute_script("arguments[0].click();", btn)
-                
-        sleep(2)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
-        text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
-        for btn in text_btn:
-            if btn.text == 'CLOSE':
-                browser.execute_script("arguments[0].click();", btn)
+            sleep(2)
+            details_report = 'this video contains sexual content'
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
+            textarea = browser.find_element_by_id('textarea')
+            textarea.send_keys(details_report)
+            #
 
-        db.video.update({'_id': video['_id']}, {'$inc': {'count_success': 1}})
-    except Exception as ex:
-        db.video.update({'_id': video['_id']}, {'$inc': {'count_fail': 1}})
-        print('Exception: {}'.format(str(ex)))
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-button-renderer.style-blue-text.size-default")))
+            text_btn = browser.find_elements_by_css_selector('.style-scope.ytd-button-renderer.style-blue-text.size-default')
+            for btn in text_btn:
+                if btn.text == 'REPORT':
+                    browser.execute_script("arguments[0].click();", btn)
+
+            sleep(2)
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
+            text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
+            for btn in text_btn:
+                if btn.text == 'CLOSE':
+                    browser.execute_script("arguments[0].click();", btn)
+
+            video.count_success += 1
+            video.save_to_db()
+        except Exception as ex:
+            video.count_fail += 1
+            video.save_to_db()
+            print('Exception: {}'.format(str(ex)))
 
 
 def get_proxy():
@@ -546,7 +587,7 @@ def create_browser(proxy, user_agent):
     if sys.platform == 'win32':
         geckodriver = 'etc/geckodriver-v0.21.0-win64/geckodriver.exe'
         binary = 'C:/Program Files/Mozilla Firefox/firefox.exe'
-        options.add_argument('--headless')
+        # options.add_argument('--headless')
     else:
         geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
         binary = '/usr/bin/firefox'
