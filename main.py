@@ -4,6 +4,7 @@ import _thread
 import random
 import subprocess
 import webbrowser
+import socket
 from PyQt5 import QtWidgets, QtCore, QtGui
 from app.app import create_app
 from app.settings import DevConfig, ProdConfig, os
@@ -61,6 +62,20 @@ def run_command(command):
     # print(p.returncode) # is 0 if success
 
 
+def is_connected():
+  try:
+    # see if we can resolve the host name -- tells us if there is
+    # a DNS listening
+    host = socket.gethostbyname('www.google.com')
+    # connect to the host -- tells us if the host is actually
+    # reachable
+    s = socket.create_connection((host, 80), 2)
+    return True
+  except:
+     pass
+  return False
+
+
 def fake_ip_by_dcom():
     # report user
     while True:
@@ -88,23 +103,27 @@ def fake_ip_by_hma():
     while True:
         mac = Mac.find_random()
         mac_address = mac.mac.replace(':', '')
-        fh = open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w")
-        fh.write("netsh interface set interface \"Ethernet 2\" disable \n")
-        fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0014 /v NetworkAddress /d ")
+        fh = open(r"E:\Code\rp-yt-backend\etc\fakeip\fake_mac.bat", "w")
+        fh.write("netsh interface set interface \"Ethernet\" disable")
+        fh.write('\n')
+        fh.write("reg add HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\{4D36E972-E325-11CE-BFC1-08002BE10318}\\0003 /v NetworkAddress /d ")
         fh.write(mac_address)
         fh.write(" /f \n")
-        fh.write("netsh interface set interface \"Ethernet 2\" enable")
+        fh.write("netsh interface set interface \"Ethernet\" enable")
         fh.close()
         print('Connecting')
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat")
-        open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat","w").close()
+        open("E:\\Code\\rp-yt-backend\\etc\\fakeip\\fake_mac.bat", "w").close()
+
+        time.sleep(30)
         run_command("E:\\Code\\rp-yt-backend\\etc\\fakeip\\change_ip_hma.bat")
         time.sleep(30)
+
         start_app(session)
 
 
 def ReportingThread():
-    fake_ip_by_dcom()
+    fake_ip_by_hma()
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):

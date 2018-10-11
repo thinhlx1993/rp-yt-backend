@@ -213,8 +213,9 @@ def login(browser, email, password, recovery_email, phone):
                             phone_number_inp.click()
                             print(phone)
                             phone_number_inp.send_keys(phone)
-                            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "next")))
-                            next_btn = browser.find_element_by_id('next')
+                            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".zZhnYe")))
+                            next_btn = browser.find_element_by_css_selector('.zZhnYe')
+                            next_btn.click()
                             browser.execute_script("arguments[0].click();", next_btn)
                             break
                         except:
@@ -484,13 +485,13 @@ def stat_report(browser, login_status):
             WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-8")))
             input_8 = browser.find_element_by_css_selector('#input-8')
             input_8.clear()
-            input_8.send_keys(video['first_time'])
+            input_8.send_keys(video.first_time)
 
             sleep(2)
             WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-9")))
             input_9 = browser.find_element_by_css_selector('#input-9')
             input_9.clear()
-            input_9.send_keys(video['second_time'])
+            input_9.send_keys(video.second_time)
 
 
             sleep(2)
@@ -519,7 +520,7 @@ def stat_report(browser, login_status):
         except Exception as ex:
             video.count_fail += 1
             video.save_to_db()
-            print('Exception: {}'.format(str(ex)))
+            print('Exception main: {}'.format(str(ex)))
 
 
 def get_proxy():
