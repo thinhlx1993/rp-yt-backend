@@ -122,10 +122,6 @@ def fake_ip_by_hma():
         start_app(session)
 
 
-def ReportingThread():
-    fake_ip_by_hma()
-
-
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):
@@ -136,13 +132,12 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         menu.triggered.connect(self.exit)
 
         # Reporting youtube
-        _thread.start_new_thread(ReportingThread,())
+        _thread.start_new_thread(fake_ip_by_hma, ())
         
         # start flask server
         _thread.start_new_thread(FlaskThread,())
         # webbrowser.open_new_tab('http://localhost:5000')
         # webbrowser.open_new_tab('https://whoer.net')
-
 
     def exit(self):
         QtCore.QCoreApplication.exit()
