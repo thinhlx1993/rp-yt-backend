@@ -152,5 +152,5 @@ def main(image):
 
 
 if __name__ == '__main__':
-    ion='icon.png'
+    ion = 'icon.png'
     main(ion)
