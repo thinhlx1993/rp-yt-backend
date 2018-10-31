@@ -50,6 +50,10 @@ class Video(Base):
                 break
         return row
 
+    @classmethod
+    def find_all(cls):
+        return session.query(Video).filter_by(status='active').all()
+
     def save_to_db(self):
         session.add(self)
         session.commit()
@@ -420,107 +424,108 @@ def stat_report(browser, login_status):
             # db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
             return
 
-    video = Video.find_random()
-    if video:
-        try:
-            browser.get(video.url)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
-            avatar_btn = browser.find_element_by_id('avatar-btn')
-            avatar_btn.click()
+    videos = Video.find_all()
+    if len(videos) > 0:
+        for video in videos:
+            try:
+                browser.get(video.url)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
+                avatar_btn = browser.find_element_by_id('avatar-btn')
+                avatar_btn.click()
 
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
-            lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
-            for index, btn in enumerate(lang_btns):
-                if index == 10:
-                    btn.click()
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
+                lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
+                for index, btn in enumerate(lang_btns):
+                    if index == 10:
+                        btn.click()
 
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
-            lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
-            lang_btn = None
-            for item in lang_item:
-                if 'English (UK)' in item.text:
-                    lang_btn = item
-            if lang_btn is not None:
-                lang_btn.click()
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
+                lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
+                lang_btn = None
+                for item in lang_item:
+                    if 'English (UK)' in item.text:
+                        lang_btn = item
+                if lang_btn is not None:
+                    lang_btn.click()
 
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "button")))
-            buttons = browser.find_elements_by_id('button')
-            for button in buttons:
-                if button.get_attribute('aria-label') == 'More actions':
-                    button.click()
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "button")))
+                buttons = browser.find_elements_by_id('button')
+                for button in buttons:
+                    if button.get_attribute('aria-label') == 'More actions':
+                        button.click()
 
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-menu-service-item-renderer")))
-            report_btn = browser.find_elements_by_css_selector('.style-scope.ytd-menu-service-item-renderer')
-            for btn in report_btn:
-                if btn.text == 'Report':
-                    btn.click()
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-menu-service-item-renderer")))
+                report_btn = browser.find_elements_by_css_selector('.style-scope.ytd-menu-service-item-renderer')
+                for btn in report_btn:
+                    if btn.text == 'Report':
+                        btn.click()
 
-            sleep(5)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
-            report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
-            for reason in report_reason:
-                if reason.text == 'Spam or misleading':
-                    reason.click()
+                sleep(5)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
+                report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
+                for reason in report_reason:
+                    if reason.text == 'Spam or misleading':
+                        reason.click()
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-5")))
-            dropdown_btn = browser.find_element_by_css_selector('#input-5')
-            browser.execute_script("arguments[0].click();", dropdown_btn)
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-5")))
+                dropdown_btn = browser.find_element_by_css_selector('#input-5')
+                browser.execute_script("arguments[0].click();", dropdown_btn)
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
-            reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
-            for item in reason:
-                if item.text == 'Scams/fraud':
-                    item.click()
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
+                reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
+                for item in reason:
+                    if item.text == 'Scams/fraud':
+                        item.click()
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
-            text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
-            for btn in text_btn:
-                if btn.text == 'NEXT':
-                    btn.click()
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
+                text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
+                for btn in text_btn:
+                    if btn.text == 'NEXT':
+                        btn.click()
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-8")))
-            input_8 = browser.find_element_by_css_selector('#input-8')
-            input_8.clear()
-            input_8.send_keys(video.first_time)
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-8")))
+                input_8 = browser.find_element_by_css_selector('#input-8')
+                input_8.clear()
+                input_8.send_keys(video.first_time)
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-9")))
-            input_9 = browser.find_element_by_css_selector('#input-9')
-            input_9.clear()
-            input_9.send_keys(video.second_time)
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-9")))
+                input_9 = browser.find_element_by_css_selector('#input-9')
+                input_9.clear()
+                input_9.send_keys(video.second_time)
 
 
-            # sleep(2)
-            # details_report = 'this video contains scam content'
-            # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
-            # textarea = browser.find_element_by_id('textarea')
-            # textarea.send_keys(details_report)
-            #
+                # sleep(2)
+                # details_report = 'this video contains scam content'
+                # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
+                # textarea = browser.find_element_by_id('textarea')
+                # textarea.send_keys(details_report)
+                #
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-button-renderer.style-blue-text.size-default")))
-            text_btn = browser.find_elements_by_css_selector('.style-scope.ytd-button-renderer.style-blue-text.size-default')
-            for btn in text_btn:
-                if btn.text == 'REPORT':
-                    browser.execute_script("arguments[0].click();", btn)
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-button-renderer.style-blue-text.size-default")))
+                text_btn = browser.find_elements_by_css_selector('.style-scope.ytd-button-renderer.style-blue-text.size-default')
+                for btn in text_btn:
+                    if btn.text == 'REPORT':
+                        browser.execute_script("arguments[0].click();", btn)
 
-            sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
-            text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
-            for btn in text_btn:
-                if btn.text == 'CLOSE':
-                    browser.execute_script("arguments[0].click();", btn)
+                sleep(2)
+                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
+                text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
+                for btn in text_btn:
+                    if btn.text == 'CLOSE':
+                        browser.execute_script("arguments[0].click();", btn)
 
-            video.count_success += 1
-            video.save_to_db()
-        except Exception as ex:
-            video.count_fail += 1
-            video.save_to_db()
-            print('Exception main: {}'.format(str(ex)))
+                video.count_success += 1
+                video.save_to_db()
+            except Exception as ex:
+                video.count_fail += 1
+                video.save_to_db()
+                print('Exception main: {}'.format(str(ex)))
 
 
 def get_proxy():
