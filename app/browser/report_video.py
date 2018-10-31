@@ -459,19 +459,19 @@ def stat_report(browser, login_status):
             WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
             report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
             for reason in report_reason:
-                if reason.text == 'Sexual content':
+                if reason.text == 'Spam or misleading':
                     reason.click()
 
             sleep(2)
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon")))
-            dropdown_btn = browser.find_element_by_css_selector('#trigger > div > paper-input > paper-input-container > div.input-content.label-is-hidden.style-scope.paper-input-container > iron-icon')
-            dropdown_btn.click()
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-5")))
+            dropdown_btn = browser.find_element_by_css_selector('#input-5')
+            browser.execute_script("arguments[0].click();", dropdown_btn)
 
             sleep(2)
             WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
             reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
             for item in reason:
-                if item.text == 'Other sexual content':
+                if item.text == 'Scams/fraud':
                     item.click()
 
             sleep(2)
@@ -494,11 +494,11 @@ def stat_report(browser, login_status):
             input_9.send_keys(video.second_time)
 
 
-            sleep(2)
-            details_report = 'this video contains sexual content'
-            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
-            textarea = browser.find_element_by_id('textarea')
-            textarea.send_keys(details_report)
+            # sleep(2)
+            # details_report = 'this video contains scam content'
+            # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
+            # textarea = browser.find_element_by_id('textarea')
+            # textarea.send_keys(details_report)
             #
 
             sleep(2)
