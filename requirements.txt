@@ -41,3 +41,4 @@ vine==1.1.4
 webargs==1.8.1
 Werkzeug==0.12.2
 pandas==0.23.4
+gensim
