@@ -574,7 +574,7 @@ def create_browser(proxy, user_agent):
     profile.set_preference("general.useragent.override", user_agent.name)
     profile.set_preference("media.volume_scale", "0.0")
     if proxy is not None:
-        # profile.set_preference("network.proxy.type", 1)
+        profile.set_preference("network.proxy.type", 1)
         # profile.set_preference("network.proxy.http", proxy['host'])
         # profile.set_preference("network.proxy.http_port",int(proxy['port']))
         # profile.set_preference("network.proxy.https",proxy['host'])
@@ -585,6 +585,7 @@ def create_browser(proxy, user_agent):
         # profile.set_preference("network.proxy.ssl_port",int(proxy['port']))
         profile.set_preference("network.proxy.socks", proxy['host'])
         profile.set_preference("network.proxy.socks_port", proxy['port'])
+        profile.set_preference("network.proxy.socks_version", 5)
         
     options = webdriver.FirefoxOptions()
     
@@ -614,6 +615,7 @@ def start_app(session):
         host="127.0.0.1",
         port=9951
     )
+    # proxy = None
     print('Start Report')
 
     try:
