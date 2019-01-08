@@ -38,6 +38,12 @@ class Channel(db.Model):
     channel = db.Column(db.Text, nullable=False)
     count_fail = db.Column(db.Integer)
 
+    @classmethod
+    def get_channels(cls, search, page, page_size):
+        data = cls.query.filter_by(cls.channel.ilike(search)).paginator(page, page_size)
+        totals = cls.query.filter().count()
+        return data, totals
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()

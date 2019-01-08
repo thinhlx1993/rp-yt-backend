@@ -122,6 +122,18 @@ def fake_ip_by_hma():
         start_app(session)
 
 
+def fake_ip_by_vipsock72():
+    # report user
+    # run_command("etc\\fakeip\\run_socks.bat")
+    time.sleep(5)
+    run_command("etc\\fakeip\\login.exe")
+    time.sleep(5)
+    while True:
+        run_command("etc\\fakeip\\new_ip.exe")
+        time.sleep(2)
+        start_app(session)
+
+
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):
@@ -132,7 +144,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         menu.triggered.connect(self.exit)
 
         # Reporting youtube
-        _thread.start_new_thread(fake_ip_by_hma, ())
+        _thread.start_new_thread(fake_ip_by_vipsock72, ())
         
         # start flask server
         _thread.start_new_thread(FlaskThread,())

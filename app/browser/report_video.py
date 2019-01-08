@@ -1,10 +1,9 @@
 # coding=utf-8
 import sys
 import random
-import requests
 from time import sleep
-from bson import ObjectId
-import subprocess, platform
+import subprocess
+import platform
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException
@@ -359,35 +358,35 @@ def get_key_recaptcha(browser):
         return None
 
 
-def key_resolver_captcha(api_url):
-    try:
-        r = requests.get(api_url)
-        res = r.text
-        if 'OK' in res:
-            request_id = res[3:]
-            resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
-            print(resolver_api)
-            while True:
-                sleep(5)
-                try:
-                    response = requests.get(resolver_api)
-                    response = response.text
-                    print(response.text)
-                    if 'OK' in response:
-                        response_key = response[3:]
-                        break
-                    if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
-                        response_key = None
-                        break
-                except Exception as ex:
-                    print('Get response error: {}'. format(str(ex)))
-
-            return response_key
-        else:
-            print('Can not get key api 2captcha.com')
-    except Exception as ex:
-        print('Can not resolver captcha: {}'.format(str(ex)))
-        return None
+# def key_resolver_captcha(api_url):
+#     try:
+#         r = requests.get(api_url)
+#         res = r.text
+#         if 'OK' in res:
+#             request_id = res[3:]
+#             resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
+#             print(resolver_api)
+#             while True:
+#                 sleep(5)
+#                 try:
+#                     response = requests.get(resolver_api)
+#                     response = response.text
+#                     print(response.text)
+#                     if 'OK' in response:
+#                         response_key = response[3:]
+#                         break
+#                     if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
+#                         response_key = None
+#                         break
+#                 except Exception as ex:
+#                     print('Get response error: {}'. format(str(ex)))
+#
+#             return response_key
+#         else:
+#             print('Can not get key api 2captcha.com')
+#     except Exception as ex:
+#         print('Can not resolver captcha: {}'.format(str(ex)))
+#         return None
 
 
 def change_language(browser):
@@ -464,7 +463,7 @@ def stat_report(browser, login_status):
                 WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
                 report_reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
                 for reason in report_reason:
-                    if reason.text == 'Spam or misleading':
+                    if reason.text.lower() == 'spam or misleading':
                         reason.click()
 
                 sleep(2)
@@ -476,7 +475,7 @@ def stat_report(browser, login_status):
                 WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
                 reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
                 for item in reason:
-                    if item.text == 'Scams/fraud':
+                    if item.text.lower() == 'misleading thumbnail':
                         item.click()
 
                 sleep(2)
@@ -575,17 +574,17 @@ def create_browser(proxy, user_agent):
     profile.set_preference("general.useragent.override", user_agent.name)
     profile.set_preference("media.volume_scale", "0.0")
     if proxy is not None:
-        profile.set_preference("network.proxy.type", 1)
-        profile.set_preference("network.proxy.http",proxy['host'])
-        profile.set_preference("network.proxy.http_port",int(proxy['port']))
-        profile.set_preference("network.proxy.https",proxy['host'])
-        profile.set_preference("network.proxy.https_port",int(proxy['port']))
-        profile.set_preference("network.proxy.ftp",proxy['host'])
-        profile.set_preference("network.proxy.ftp_port",int(proxy['port']))
-        profile.set_preference("network.proxy.ssl",proxy['host'])
-        profile.set_preference("network.proxy.ssl_port",int(proxy['port']))
-        profile.set_preference("network.proxy.socks",proxy['host'])
-        profile.set_preference("network.proxy.socks_port",int(proxy['port']))
+        # profile.set_preference("network.proxy.type", 1)
+        # profile.set_preference("network.proxy.http", proxy['host'])
+        # profile.set_preference("network.proxy.http_port",int(proxy['port']))
+        # profile.set_preference("network.proxy.https",proxy['host'])
+        # profile.set_preference("network.proxy.https_port",int(proxy['port']))
+        # profile.set_preference("network.proxy.ftp",proxy['host'])
+        # profile.set_preference("network.proxy.ftp_port",int(proxy['port']))
+        # profile.set_preference("network.proxy.ssl",proxy['host'])
+        # profile.set_preference("network.proxy.ssl_port",int(proxy['port']))
+        profile.set_preference("network.proxy.socks", proxy['host'])
+        profile.set_preference("network.proxy.socks_port", proxy['port'])
         
     options = webdriver.FirefoxOptions()
     
@@ -610,15 +609,20 @@ def create_browser(proxy, user_agent):
     
 
 def start_app(session):
+    browser = None
+    proxy = dict(
+        host="127.0.0.1",
+        port=9951
+    )
+    print('Start Report')
+
     try:
-        proxy = None
-        print('Start Report')
         agent = Agent.find_random()
         browser = create_browser(proxy, agent)
         login_status = False
         stat_report(browser, login_status)
         browser.quit()
     except Exception as ex:
-        print(str(ex))
+        print("Main exception error: {}".format(str(ex)))
         if browser:
             browser.quit()

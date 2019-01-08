@@ -1,10 +1,9 @@
 import time
 from flask import Blueprint, request
-from bson import ObjectId
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
-from app.extensions import client
 from app.utils import send_result, parse_req, send_error, FieldString
+from app.model import Channel
 
 api = Blueprint('channel', __name__)
 
@@ -26,15 +25,14 @@ def get_channel():
     if search and search != '':
         query['name'] = {"$regex": search}
 
-    data = client.db.channel.find(query).skip(page_size * page).limit(page_size)
-    totals = client.db.channel.count(query)
-    data = list(data)
-    for item in data:
-        item['_id'] = str(item['_id'])
-        strategy = client.db.strategy.find_one({'_id': ObjectId(item['strategy'])})
-        if strategy is not None:
-            strategy['_id'] = str(strategy['_id'])
-            item['strategy'] = strategy
+    data, totals = Channel.get_channels(search, page, page_size)
+    data = data.items()
+    # for item in data:
+    #     item['_id'] = str(item['_id'])
+    #     strategy = client.db.strategy.find_one({'_id': ObjectId(item['strategy'])})
+    #     if strategy is not None:
+    #         strategy['_id'] = str(strategy['_id'])
+    #         item['strategy'] = strategy
 
     return_data = dict(
         rows=data,

@@ -6,7 +6,7 @@ import traceback
 from time import strftime
 from flask import Flask, request
 from app.api import v1 as api_v1
-from app.extensions import jwt, db, app_log_handler, client
+from app.extensions import jwt, db, app_log_handler
 from app.settings import ProdConfig
 
 
@@ -55,8 +55,6 @@ def register_extensions(app):
     """
     db.app = app
     db.init_app(app)
-    client.app = app
-    client.init_app(app)
     jwt.init_app(app)
     if os.environ.get('FLASK_DEBUG') == '0':
         # logger
