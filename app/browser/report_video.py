@@ -186,19 +186,20 @@ def login(browser, email, password, recovery_email, phone):
         email_inp = browser.find_element_by_id('identifierId')
         email_inp.send_keys(email)
         browser.find_element_by_id('identifierNext').click()  # đi đến trang nhập password
-        sleep(3)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#headingText > content")))
-        heading_text = browser.find_element_by_css_selector('#headingText > content')
-        if heading_text.text == 'Welcome':
-            print(heading_text.text)
-        elif heading_text.text == 'Account disabled':
-            return 'disabled'
+        sleep(5)
+        # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#headingText > content")))
+        # heading_text = browser.find_element_by_css_selector('#headingText > content')
+        # if heading_text.text == 'Welcome':
+        #     print(heading_text.text)
+        # elif heading_text.text == 'Account disabled':
+        #     return 'disabled'
 
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "input.whsOnd.zHQkBf")))
-        password_inp = browser.find_element_by_css_selector('input.whsOnd.zHQkBf')
+        WebDriverWait(browser, 60).until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, "#headingText > content"),
+                                                                          "Welcome"))
+        next_btm = WebDriverWait(browser, 60).until(EC.presence_of_element_located((By.ID, "passwordNext")))
+        password_inp = WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/div/form/content/section/div/content/div[1]/div/div[1]/div/div[1]/input")))
         password_inp.send_keys(password)
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "passwordNext")))
-        browser.find_element_by_id('passwordNext').click()
+        browser.execute_script("arguments[0].click();", next_btm)
         try:
             WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Verify it\'s you'))
             print('Verify account')
@@ -208,44 +209,70 @@ def login(browser, email, password, recovery_email, phone):
                 if recovery_option.text == 'Confirm your recovery phone number':
                     print('Confirm your recovery phone number')
                     recovery_option.click()
-                    sleep(2)
-                    loop_time = 0
-                    while loop_time < 15:
-                        try:
-                            phone_number_inp = browser.find_element_by_id('phoneNumberId')
-                            phone_number_inp.click()
-                            print(phone)
-                            phone_number_inp.send_keys(phone)
-                            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".zZhnYe")))
-                            next_btn = browser.find_element_by_css_selector('.zZhnYe')
-                            next_btn.click()
-                            browser.execute_script("arguments[0].click();", next_btn)
-                            break
-                        except:
-                            phone_number_inp.clear()
-                            loop_time+=1
-                            pass
-                    
-                    
-                    
-                elif recovery_option.text == 'Need to input recovery email':
-                    print('Need to input recovery email')
-                    recovery_option.click()
-                    sleep(2)
-                    while True:
-                        try:
-                            recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
-                            recovery_inp.click()
-                            recovery_inp.send_keys(recovery_email)
-            
-                            next_btn = browser.find_element_by_id('next')
-                            browser.execute_script("arguments[0].click();", next_btn)
-                            break
-                        except:
-                            pass
+                    sleep(10)
+                    #
+                    # select_country = WebDriverWait(browser, 60). \
+                    #     until(EC.presence_of_all_elements_located(By.XPATH,
+                    #                                               "/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/div/form/content/section/div/content/div[2]/div/div[1]/div/div[1]/div[1]/div[233]"))
+                    # select_country.click()
+                    #
+                    # vietnamese = WebDriverWait(browser, 60). \
+                    #     until(EC.presence_of_all_elements_located(By.XPATH,
+                    #                                               "/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/div/form/content/section/div/content/div[2]/div/div[1]/div/div[2]/div[233]"))
+                    # vietnamese.click()
+
+                    # loop_time = 0
+                    # while loop_time < 15:
+                    #     phone_number_inp = None
+                    #     try:
+                    #
+                    #         break
+                    #     except Exception as ex:
+                    #         if phone_number_inp:
+                    #             phone_number_inp.clear()
+                    #         loop_time += 1
+                    phone = "+84{}".format(phone)
+                    phone_number_inp = WebDriverWait(browser, 60). \
+                        until(EC.presence_of_element_located((By.ID, "phoneNumberId")))
+                    # phone_number_inp = browser.find_element_by_id('phoneNumberId')
+                    phone_number_inp.click()
+
+                    phone_number_inp.send_keys(phone)
+
+                    next_btn = WebDriverWait(browser, 30).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ".zZhnYe")))
+                    browser.execute_script("arguments[0].click();", next_btn)
+
+                    # phone = "0{}".format(phone)
+                    # phone_number_inp = WebDriverWait(browser, 60). \
+                    #     until(EC.presence_of_element_located((By.ID, "phoneNumberId")))
+                    # # phone_number_inp = browser.find_element_by_id('phoneNumberId')
+                    # phone_number_inp.click()
+                    #
+                    # phone_number_inp.send_keys(phone)
+                    #
+                    # next_btn = WebDriverWait(browser, 30).until(
+                    #     EC.presence_of_element_located((By.CSS_SELECTOR, ".zZhnYe")))
+                    # browser.execute_script("arguments[0].click();", next_btn)
+
+                # elif recovery_option.text == 'Need to input recovery email':
+                #     print('Need to input recovery email')
+                #     recovery_option.click()
+                #     sleep(2)
+                #     while True:
+                #         try:
+                #             recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
+                #             recovery_inp.click()
+                #             recovery_inp.send_keys(recovery_email)
+                #
+                #             next_btn = browser.find_element_by_id('next')
+                #             browser.execute_script("arguments[0].click();", next_btn)
+                #             break
+                #         except:
+                #             pass
                         
-            WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
-            return 'disabled'
+            # WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
+            # return 'disabled'
 
         except Exception as ex:
             print('No need to input recovery email: {}'.format(str(ex)))
@@ -605,7 +632,7 @@ def create_browser(proxy, user_agent):
         capabilities=capabilities,
         firefox_binary=binary,
         firefox_profile=profile)
-    browser.maximize_window()
+    browser.minimize_window()
     return browser
     
 
