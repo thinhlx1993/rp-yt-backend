@@ -255,21 +255,21 @@ def login(browser, email, password, recovery_email, phone):
                     #     EC.presence_of_element_located((By.CSS_SELECTOR, ".zZhnYe")))
                     # browser.execute_script("arguments[0].click();", next_btn)
 
-                # elif recovery_option.text == 'Need to input recovery email':
-                #     print('Need to input recovery email')
-                #     recovery_option.click()
-                #     sleep(2)
-                #     while True:
-                #         try:
-                #             recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
-                #             recovery_inp.click()
-                #             recovery_inp.send_keys(recovery_email)
-                #
-                #             next_btn = browser.find_element_by_id('next')
-                #             browser.execute_script("arguments[0].click();", next_btn)
-                #             break
-                #         except:
-                #             pass
+                elif recovery_option.text == 'Need to input recovery email':
+                    print('Need to input recovery email')
+                    recovery_option.click()
+                    sleep(2)
+                    while True:
+                        try:
+                            recovery_inp = browser.find_element_by_id('knowledge-preregistered-email-response')
+                            recovery_inp.click()
+                            recovery_inp.send_keys(recovery_email)
+
+                            next_btn = browser.find_element_by_id('next')
+                            browser.execute_script("arguments[0].click();", next_btn)
+                            break
+                        except:
+                            pass
                         
             # WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
             # return 'disabled'

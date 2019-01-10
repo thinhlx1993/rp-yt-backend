@@ -42,8 +42,8 @@ def get_strategies():
     """
     tmp = Strategy.find_all()
     data = []
-    for item in tmp.items:
-        data.append(item.json*())
+    for item in tmp:
+        data.append(item.json())
 
     return send_result(data=data)
 

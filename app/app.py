@@ -103,6 +103,6 @@ def register_blueprints(app):
     app.register_blueprint(api_v1.uploads.api, url_prefix='/api/v1/uploads')
     app.register_blueprint(api_v1.email.api, url_prefix='/api/v1/email')
     app.register_blueprint(api_v1.strategy.api, url_prefix='/api/v1/strategy')
-    # app.register_blueprint(api_v1.channel.api, url_prefix='/api/v1/channel')
+    app.register_blueprint(api_v1.channel.api, url_prefix='/api/v1/channel')
     # app.register_blueprint(api_v1.views.api, url_prefix='/api/v1/views')
     # app.register_blueprint(api_v1.user_agent.api, url_prefix='/api/v1/agents')

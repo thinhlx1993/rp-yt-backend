@@ -3,7 +3,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
 from app.utils import send_result, parse_req, send_error, FieldString
-from app.model import Channel
+from app.model import Channel, Strategy
 
 api = Blueprint('channel', __name__)
 
@@ -21,21 +21,15 @@ def get_channel():
         search = request.args.get('search', '')
     except Exception as ex:
         return send_error(message='Parser params error')
-    query = dict()
-    if search and search != '':
-        query['name'] = {"$regex": search}
 
     data, totals = Channel.get_channels(search, page, page_size)
-    data = data.items()
-    # for item in data:
-    #     item['_id'] = str(item['_id'])
-    #     strategy = client.db.strategy.find_one({'_id': ObjectId(item['strategy'])})
-    #     if strategy is not None:
-    #         strategy['_id'] = str(strategy['_id'])
-    #         item['strategy'] = strategy
+    _data = []
+    for item in data.items:
+        item = item.json()
+        _data.append(item)
 
     return_data = dict(
-        rows=data,
+        rows=_data,
         totals=totals
     )
     return send_result(data=return_data)
@@ -49,31 +43,33 @@ def update_channel():
     :return:
     """
     params = {
-        '_id': FieldString(),
+        '_id': fields.Number(),
         'name': FieldString(),
         'channel': FieldString(),
-        'strategy': FieldString(),
+        'strategy': fields.Number(),
         'status': FieldString(),
     }
 
     try:
         json_data = parse_req(params)
         _id = json_data.get('_id')
+        name = json_data.get('name')
+        channel = json_data.get('channel')
+        strategy = json_data.get('strategy')
+        status = json_data.get('status')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    channel = client.db.channel.find_one({'_id': ObjectId(_id)})
-    if channel is None:
-        return send_error(message='Not found')
+    exist = Channel.find_by_id(_id)
+    if not exist:
+        return send_error(message='Khong tim thay channel')
 
-    keys = ('name', 'channel', 'strategy', 'status')
+    exist.name = name
+    exist.channel = channel
+    exist.strategy = strategy
+    exist.status = status
+    exist.save_to_db()
 
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            channel[k] = v
-
-    client.db.channel.update({'_id': ObjectId(_id)}, channel)
     return send_result(message='Cập nhật kênh thành công.')
 
 
@@ -86,34 +82,27 @@ def create_channel():
     params = {
         'name': FieldString(),
         'channel': FieldString(),
-        'strategy': FieldString(),
+        'strategy': fields.Number(),
         'status': FieldString(),
     }
 
     try:
         json_data = parse_req(params)
         new_name = json_data.get('name').strip().lower()
+        strategy = json_data.get('strategy')
+        name = json_data.get('name')
+        channel = json_data.get('channel')
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    channel = client.db.channel.find_one({'email': new_name})
-    if channel is not None:
+    exist = Channel.find_exist(new_name)
+    if exist:
         return send_error(message='Duplicate channel')
 
-    keys = ('name', 'channel', 'strategy', 'status')
-
-    channel = dict()
-    for k in keys:
-        v = json_data.get(k, None)
-        if v is not None or v != '':
-            channel[k] = v
-
-    channel['create_date'] = int(time.time())
-    channel['status'] = 'active'
-    channel['reporting'] = False
-    channel['count_success'] = 0
-    channel['count_fail'] = 0
-    client.db.channel.insert_one(channel)
+    channel = Channel(status='active', strategy=strategy,
+                      reporting=True, count_success=0,
+                      count_fail=0, name=name, channel=channel)
+    channel.save_to_db()
     return send_result(message='Tạo kênh mới thành công.')
 
 

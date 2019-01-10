@@ -1,4 +1,5 @@
 # coding: utf-8
+import time
 from sqlalchemy import Column, Integer, Numeric, Table, Text
 from app.extensions import db
 
@@ -38,11 +39,47 @@ class Channel(db.Model):
     channel = db.Column(db.Text, nullable=False)
     count_fail = db.Column(db.Integer)
 
+    def __init__(self, strategy, status, reporting, count_success, count_fail, name, channel):
+        self.create_date = int(time.time())
+        self.strategy = strategy
+        self.status = status
+        self.reporting = reporting
+        self.count_success = count_success
+        self.count_fail = count_fail
+        self.name = name
+        self.channel = channel
+
+    def json(self):
+        return dict(
+            id=self.id,
+            strategy=self.strategy,
+            create_date=self.create_date,
+            status=self.status,
+            reporting=self.reporting,
+            count_success=self.count_success,
+            count_fail=self.count_fail,
+            name=self.name,
+            channel=self.channel,
+        )
+
     @classmethod
     def get_channels(cls, search, page, page_size):
-        data = cls.query.filter_by(cls.channel.ilike(search)).paginator(page, page_size)
-        totals = cls.query.filter().count()
+        if search != '':
+            data = cls.query.filter(cls.name.contains(search)).paginate(
+                page, page_size, error_out=False)
+            totals = cls.query.filter(cls.name.contains(search)).count()
+        else:
+            data = cls.query.filter().paginate(page, page_size, error_out=False)
+            totals = cls.query.filter().count()
         return data, totals
+
+    @classmethod
+    def find_exist(cls, name):
+        return cls.query.filter(cls.name == name).first()
+
+    @classmethod
+    def find_by_id(cls, _id):
+        return cls.query.filter(cls.id == _id).first()
 
     def save_to_db(self):
         db.session.add(self)

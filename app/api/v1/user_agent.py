@@ -1,9 +1,7 @@
 import time
 from flask import Blueprint, request
-from bson import ObjectId
 from flask_jwt_extended import jwt_required
 from marshmallow import fields
-from app.extensions import client
 from app.utils import send_result, parse_req, send_error, FieldString
 
 api = Blueprint('user_agent', __name__)
