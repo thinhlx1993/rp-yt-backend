@@ -126,12 +126,13 @@ def fake_ip_by_vipsock72():
     # report user
     # run_command("etc\\fakeip\\run_socks.bat")
     # time.sleep(5)
-    # run_command("etc\\fakeip\\login.exe")
-    # time.sleep(5)
+
     while True:
         run_command("etc\\fakeip\\new_ip.exe")
         time.sleep(2)
         start_app(session)
+        run_command("etc\\fakeip\\clear_ip.exe")
+        time.sleep(5)
 
 
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):

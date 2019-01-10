@@ -270,7 +270,27 @@ def login(browser, email, password, recovery_email, phone):
                             break
                         except:
                             pass
-                        
+
+                elif recovery_option.text == 'Confirm your recovery email':
+                    print('Confirm your recovery email')
+                    recovery_option.click()
+                    sleep(2)
+                    while True:
+                        try:
+                            recovery_inp = WebDriverWait(browser, 60). \
+                                until(EC.presence_of_element_located((By.ID, "identifierId")))
+                            # recovery_inp = browser.find_element_by_id('identifierId')
+                            recovery_inp.click()
+                            recovery_inp.send_keys(recovery_email)
+
+                            # next_btn = browser.find_element_by_css_selector('.zZhnYe')
+                            next_btn = WebDriverWait(browser, 60). \
+                                until(EC.presence_of_element_located((By.CSS_SELECTOR, ".zZhnYe")))
+                            browser.execute_script("arguments[0].click();", next_btn)
+                            break
+                        except Exception as ex:
+                            print(ex)
+
             # WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
             # return 'disabled'
 
@@ -573,20 +593,20 @@ def get_proxy():
 
 
 def ping_ok(sHost):
-        try:
-            output = subprocess.check_output("ping -{} 1 {}". \
-                                             format('n' if platform.system().lower()=="windows" else 'c', sHost), shell=True)
-            output = str(output)
-            print(output)
-            index = output.index('time')
-            ending = output.index('ms TTL')
-            time = output[index+5: ending]
-            print(int(time))
-            return int(time) < 300
-        except Exception as e:
-            print(e)
-            return False
-        
+    try:
+        output = subprocess.check_output("ping -{} 1 {}". \
+                                         format('n' if platform.system().lower()=="windows" else 'c', sHost), shell=True)
+        output = str(output)
+        print(output)
+        index = output.index('time')
+        ending = output.index('ms TTL')
+        time = output[index+5: ending]
+        print(int(time))
+        return int(time) < 300
+    except Exception as e:
+        print(e)
+        return False
+
         
 def create_browser(proxy, user_agent):
     capabilities = DesiredCapabilities.FIREFOX.copy()
@@ -632,7 +652,7 @@ def create_browser(proxy, user_agent):
         capabilities=capabilities,
         firefox_binary=binary,
         firefox_profile=profile)
-    browser.minimize_window()
+    browser.maximize_window()
     return browser
     
 
