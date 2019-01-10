@@ -118,11 +118,11 @@ def delete_channel():
     except Exception as ex:
         return send_error(message='Json parser error', code=442)
 
-    channel = client.db.channel.find_one({'_id': ObjectId(_id)})
-    if channel is None:
+    exist = Channel.find_by_id(_id)
+    if not exist:
         return send_error(message='Không thể tìm thấy vui lòng thử lại.')
 
-    client.db.channel.remove({'_id': ObjectId(_id)})
+    exist.delete_from_db()
     return send_result(message='Đã xóa thành công.')
 
 
