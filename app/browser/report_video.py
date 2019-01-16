@@ -472,7 +472,7 @@ def stat_report(browser, login_status):
 
     videos = Video.find_all()
     if len(videos) > 0:
-        for video in videos:
+        for index_video, video in enumerate(videos):
 
             try:
                 check_available = browser.find_element_by_css_selector('.reason')
@@ -484,24 +484,27 @@ def stat_report(browser, login_status):
 
             try:
                 browser.get(video.url)
-                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
-                avatar_btn = browser.find_element_by_id('avatar-btn')
-                avatar_btn.click()
 
-                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
-                lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
-                for index, btn in enumerate(lang_btns):
-                    if index == 10:
-                        btn.click()
+                if index_video == 0:
+                    # change language
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
+                    avatar_btn = browser.find_element_by_id('avatar-btn')
+                    avatar_btn.click()
 
-                WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
-                lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
-                lang_btn = None
-                for item in lang_item:
-                    if 'English (UK)' in item.text:
-                        lang_btn = item
-                if lang_btn is not None:
-                    lang_btn.click()
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
+                    lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
+                    for index, btn in enumerate(lang_btns):
+                        if index == 10:
+                            btn.click()
+
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
+                    lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
+                    lang_btn = None
+                    for item in lang_item:
+                        if 'English (UK)' in item.text:
+                            lang_btn = item
+                    if lang_btn is not None:
+                        lang_btn.click()
 
                 WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "button")))
                 buttons = browser.find_elements_by_id('button')
