@@ -473,6 +473,15 @@ def stat_report(browser, login_status):
     videos = Video.find_all()
     if len(videos) > 0:
         for video in videos:
+
+            try:
+                check_available = browser.find_element_by_css_selector('.reason')
+                if check_available and check_available.text == 'Video unavailable':
+                    video.status = 'deactive'
+                    video.save_to_db()
+            except:
+                pass
+
             try:
                 browser.get(video.url)
                 WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "avatar-btn")))
