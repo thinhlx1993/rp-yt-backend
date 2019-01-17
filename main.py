@@ -7,6 +7,7 @@ import webbrowser
 import socket
 from PyQt5 import QtWidgets, QtCore, QtGui
 from app.app import create_app
+from app.model import Video
 from app.settings import DevConfig, ProdConfig, os
 from app.browser.report_video import start_app
 from sqlalchemy import create_engine
@@ -120,6 +121,17 @@ def fake_ip_by_hma():
         time.sleep(30)
 
         start_app(session)
+
+
+def add_new_videos():
+    with open("etc/videos.txt", "r") as file:
+        for line in file.readlines():
+            line = line.replace("\\n", "")
+            new_video = Video(name="Video", url=line, status="active",
+                              count_success=0, count_fail=0,
+                              first_time=random.randint(0, 40),
+                              second_time=random.randint(0, 60))
+            new_video.save_to_db()
 
 
 def fake_ip_by_vipsock72():
