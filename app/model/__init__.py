@@ -295,6 +295,16 @@ class Video(db.Model):
     first_time = db.Column(db.Text)
     second_time = db.Column(db.Text)
 
+    def __init__(self, name, url, status, count_success, count_fail, first_time, second_time):
+        self.name = name,
+        self.url = url,
+        self.status = status,
+        self.count_success = count_success,
+        self.count_fail = count_fail,
+        self.first_time = first_time,
+        self.second_time = second_time,
+        self.name = name,
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()
