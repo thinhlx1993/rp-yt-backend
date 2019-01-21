@@ -536,8 +536,8 @@ def stat_report(browser, login_status):
                             browser.execute_script("arguments[0].click();", reason)
 
                     sleep(1)
-                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-5")))
-                    dropdown_btn = browser.find_element_by_css_selector('#input-5')
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-4")))
+                    dropdown_btn = browser.find_element_by_css_selector('#input-4')
                     browser.execute_script("arguments[0].click();", dropdown_btn)
 
                     sleep(1)
