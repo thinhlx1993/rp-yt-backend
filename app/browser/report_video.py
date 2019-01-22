@@ -532,7 +532,7 @@ def stat_report(browser, login_status):
 
                     report_reason = browser.find_elements_by_tag_name('yt-formatted-string')
                     for reason in report_reason:
-                        if reason.text.lower() == 'spam or misleading':
+                        if reason.text.lower() == 'harmful dangerous acts':
                             browser.execute_script("arguments[0].click();", reason)
 
                     sleep(1)
@@ -544,7 +544,7 @@ def stat_report(browser, login_status):
                     WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
                     reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
                     for item in reason:
-                        if item.text.lower().strip() == 'misleading thumbnail':
+                        if item.text.lower().strip() == 'abuse of fire or explosives':
                             item.click()
 
                     sleep(2)
