@@ -304,6 +304,10 @@ class Video(db.Model):
         self.first_time = first_time
         self.second_time = second_time
 
+    @classmethod
+    def check_exist(cls, url):
+        return True if cls.query.filter(cls.url == url).first() else False
+
     def save_to_db(self):
         db.session.add(self)
         db.session.commit()

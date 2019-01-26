@@ -127,11 +127,13 @@ def add_new_videos():
     with open("etc/videos.txt", "r") as file:
         for line in file.readlines():
             line = line.replace("\\n", "")
-            new_video = Video(name="Video", url=line, status="active",
-                              count_success=0, count_fail=0,
-                              first_time=random.randint(1, 40),
-                              second_time=random.randint(1, 60))
-            new_video.save_to_db()
+            exist = Video.check_exist(line)
+            if not exist:
+                new_video = Video(name="Video", url=line, status="active",
+                                count_success=0, count_fail=0,
+                                first_time=random.randint(1, 40),
+                                second_time=random.randint(1, 60))
+                new_video.save_to_db()
 
 
 def fake_ip_by_vipsock72():
@@ -157,7 +159,7 @@ class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
         menu.triggered.connect(self.exit)
 
         # Reporting youtube
-        _thread.start_new_thread(fake_ip_by_vipsock72, ())
+        _thread.start_new_thread(add_new_videos, ())
         
         # start flask server
         _thread.start_new_thread(FlaskThread,())
@@ -179,3 +181,4 @@ def main(image):
 if __name__ == '__main__':
     ion = 'icon.png'
     main(ion)
+    
