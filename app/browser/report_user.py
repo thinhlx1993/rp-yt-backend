@@ -226,11 +226,10 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
         return '0'
 
 
-def get_key_recaptcha(browser):
+def get_key_recaptcha(browser, xpath):
     try:
         browser.switch_to.default_content()
-        iframe_switch = browser.find_element(By.XPATH,
-                                             "/html/body/div[1]/div[3]/div/div/form/div[2]/div/div[19]/div[4]/div/div/div/iframe")
+        iframe_switch = browser.find_element(By.XPATH, xpath)
         key = iframe_switch.get_attribute('src')
         keys = key.split('&')
         for item in keys:
@@ -399,19 +398,19 @@ def get_proxy():
 
 
 def ping_ok(sHost):
-        try:
-            output = subprocess.check_output("ping -{} 1 {}". \
-                                             format('n' if platform.system().lower()=="windows" else 'c', sHost), shell=True)
-            output = str(output)
-            print(output)
-            index = output.index('time')
-            ending = output.index('ms TTL')
-            time = output[index+5: ending]
-            print(int(time))
-            return int(time) < 300
-        except Exception as e:
-            print(e)
-            return False
+    try:
+        output = subprocess.check_output("ping -{} 1 {}". \
+                                         format('n' if platform.system().lower()=="windows" else 'c', sHost), shell=True)
+        output = str(output)
+        print(output)
+        index = output.index('time')
+        ending = output.index('ms TTL')
+        time = output[index+5: ending]
+        print(int(time))
+        return int(time) < 300
+    except Exception as e:
+        print(e)
+        return False
         
         
 def create_browser(proxy, user_agent):
@@ -457,7 +456,7 @@ def create_browser(proxy, user_agent):
         firefox_binary=binary,
         firefox_profile=profile)
     return browser
-    
+
 
 def start_app():
     try:

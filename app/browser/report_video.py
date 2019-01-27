@@ -4,6 +4,8 @@ import random
 from time import sleep
 import subprocess
 import platform
+
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException
@@ -120,6 +122,35 @@ class Email(Base):
     @classmethod
     def find_by_status(cls, status):
         return cls.query.filter_by(status=status).first()
+
+    def save_to_db(self):
+        session.add(self)
+        session.commit()
+
+    def delete_from_db(self):
+        session.delete(self)
+        session.commit()
+
+
+class FakeUser(Base):
+    __tablename__ = 'fake_user'
+
+    id = Column(Integer, primary_key=True)
+    country = Column(Text)
+    gender = Column(Text)
+    state = Column(Text)
+    name = Column(Integer)
+    address_1 = Column(Text)
+    address_2 = Column(Text)
+    city = Column(Text)
+    zip_code = Column(Text)
+    phone = Column(Text)
+
+    @classmethod
+    def find_random(cls):
+        rand = random.randrange(0, session.query(Email).count())
+        row = session.query(Email)[rand]
+        return row
 
     def save_to_db(self):
         session.add(self)
@@ -389,11 +420,10 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
         return '0'
 
 
-def get_key_recaptcha(browser):
+def get_key_recaptcha(browser, xpath):
     try:
         browser.switch_to.default_content()
-        iframe_switch = browser.find_element(By.XPATH,
-                                             "/html/body/div[1]/div[3]/div/div/form/div[2]/div/div[19]/div[4]/div/div/div/iframe")
+        iframe_switch = browser.find_element(By.XPATH, xpath)
         key = iframe_switch.get_attribute('src')
         keys = key.split('&')
         for item in keys:
@@ -403,37 +433,6 @@ def get_key_recaptcha(browser):
     except Exception as ex:
         print('Can not switch to recaptcha checkbox: {}'.format(str(ex)))
         return None
-
-
-# def key_resolver_captcha(api_url):
-#     try:
-#         r = requests.get(api_url)
-#         res = r.text
-#         if 'OK' in res:
-#             request_id = res[3:]
-#             resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
-#             print(resolver_api)
-#             while True:
-#                 sleep(5)
-#                 try:
-#                     response = requests.get(resolver_api)
-#                     response = response.text
-#                     print(response.text)
-#                     if 'OK' in response:
-#                         response_key = response[3:]
-#                         break
-#                     if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
-#                         response_key = None
-#                         break
-#                 except Exception as ex:
-#                     print('Get response error: {}'. format(str(ex)))
-#
-#             return response_key
-#         else:
-#             print('Can not get key api 2captcha.com')
-#     except Exception as ex:
-#         print('Can not resolver captcha: {}'.format(str(ex)))
-#         return None
 
 
 def change_language(browser):
@@ -591,6 +590,176 @@ def stat_report(browser, login_status):
                 video.count_fail += 1
                 video.save_to_db()
                 print('Exception main: {}'.format(str(ex)))
+
+
+def key_resolver_captcha(api_url):
+    try:
+        r = requests.get(api_url)
+        res = r.text
+        if 'OK' in res:
+            request_id = res[3:]
+            resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
+            print(resolver_api)
+            while True:
+                sleep(5)
+                try:
+                    response = requests.get(resolver_api)
+                    response = response.text
+                    if 'OK' in response:
+                        response_key = response[3:]
+                        break
+                    if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
+                        response_key = None
+                        break
+                except Exception as ex:
+                    print('Get response error: {}'. format(str(ex)))
+
+            return response_key
+        else:
+            print('Can not get key api 2captcha.com')
+    except Exception as ex:
+        print('Can not resolver captcha: {}'.format(str(ex)))
+        return None
+
+
+def report_license(browser):
+    captcha_status = True
+    try:
+        title = browser.find_element_by_xpath('/html/body/div[1]/div/b')
+        if title.text == 'About this page':
+            xpath = '/html/body/div[1]/form/div/div/div/iframe'
+            google_key = get_key_recaptcha(browser, xpath=xpath)
+            current_url = browser.current_url
+            captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
+                api_key, google_key, current_url)
+            key_resolver = key_resolver_captcha(captcha_resolver_api)
+            if key_resolver is not None:
+                browser.switch_to.default_content()
+                WebDriverWait(browser, 30).until(
+                    EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
+                browser.execute_script(
+                    "document.getElementById('g-recaptcha-response').style.display = 'block';")
+                textarea_box = browser.find_element_by_id('g-recaptcha-response')
+                textarea_box.send_keys(key_resolver)
+                submit_report_btn = browser.find_element_by_xpath('/html/body/div[1]/form/input[3]')
+                submit_report_btn.click()
+            else:
+                captcha_status = False
+    except Exception as ex:
+        print('No Need to resolver captcha')
+
+    videos = Video.find_all()
+    for index_video, video in enumerate(videos):
+        if captcha_status:
+            change_language(browser)
+            reason1 = 'copyright infringement (someone copied my creation)'
+            reason2 = 'i am!'
+
+            complaint_filter_div = browser.find_element_by_id('complaint_filter_div')
+            complaints = complaint_filter_div.find_elements_by_css_selector('ul > li > label')
+            for complaint in complaints:
+                complaint_text = complaint.text
+                complaint_text = complaint_text.lower().strip()
+                if complaint_text == reason1:
+                    complaint.click()
+
+            affected_entities_div = browser.find_element_by_id('affected-entities-div')
+            complaints = affected_entities_div.find_elements_by_css_selector('ul > li > label')
+            for complaint in complaints:
+                complaint_text = complaint.text
+                complaint_text = complaint_text.lower().strip()
+                if complaint_text == reason2:
+                    complaint.click()
+
+            video_url_0 = browser.find_element_by_id('video_url_0')
+            video_url_0.send_keys(video.url)
+            from selenium.webdriver.support.ui import Select
+            issue_type_0 = Select(browser.find_element_by_id('issue_type_0'))
+            issue_type_0.select_by_value('S')
+
+            issue_details_wrapper = browser.find_element_by_class_name('issue_details_wrapper')
+            conditional_value_validations = issue_details_wrapper.find_elements_by_css_selector(
+                '.conditional-value-validation')
+            for conditional_value_validation in conditional_value_validations:
+                if conditional_value_validation.get_attribute('name') == 'issue_detail_S_0':
+                    conditional_value_validation.send_keys(video['title'])
+
+            reason3 = 'entire video'
+            position_marker = browser.find_element_by_class_name('position-marker-class-S-0')
+            issue_details = position_marker.find_elements_by_css_selector('ul > li > label')
+            for issue_detail in issue_details:
+                issue_detail_text = issue_detail.text
+                issue_detail_text = issue_detail_text.lower().strip()
+                if issue_detail_text == reason3:
+                    issue_detail.click()
+
+            fake_user = FakeUser.find_random()
+
+            owner_display_name = browser.find_element_by_id('owner_display_name')
+            owner_display_name.send_keys(fake_user.name)
+
+            requester_title = browser.find_element_by_id('requester_title')
+            requester_title.send_keys(fake_user.name)
+
+            requester_name = browser.find_element_by_id('requester_name')
+            requester_name.send_keys(fake_user.name)
+
+            address1 = browser.find_element_by_id('address1')
+            address1.send_keys(fake_user.address_1)
+
+            address2 = browser.find_element_by_id('address2')
+            address2.send_keys(fake_user.address_2)
+
+            city = browser.find_element_by_id('city')
+            city.send_keys(fake_user.city)
+
+            state = browser.find_element_by_id('state')
+            state.send_keys(fake_user.state)
+
+            zip_code = browser.find_element_by_id('zip')
+            zip_code.send_keys(fake_user.zip_code)
+
+            phone = browser.find_element_by_id('phone')
+            phone.send_keys(fake_user.phone)
+
+            country = Select(browser.find_element_by_id('country'))
+            country.select_by_value('US')
+
+            browser.find_element_by_id('checkbox_confirmation_1').click()
+            browser.find_element_by_id('checkbox_confirmation_2').click()
+            browser.find_element_by_id('checkbox_confirmation_3').click()
+            browser.find_element_by_id('checkbox_confirmation_liability').click()
+            browser.find_element_by_id('checkbox_confirmation_abuse_termination').click()
+            owner_signature = browser.find_element_by_id('owner_signature')
+            owner_signature.send_keys(fake_user.name)
+
+            iframe_path = '/html/body/div[1]/div[3]/div/div/div[2]/form/div[5]/div[4]/div/div/iframe'
+            google_key = get_key_recaptcha(browser, iframe_path)
+            current_url = browser.current_url
+            captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
+                api_key, google_key, current_url)
+            key_resolver = key_resolver_captcha(captcha_resolver_api)
+            if key_resolver is not None:
+                browser.switch_to.default_content()
+                WebDriverWait(browser, 30).until(
+                    EC.presence_of_element_located((By.ID, "g-recaptcha-response")))
+                browser.execute_script(
+                    "document.getElementById('g-recaptcha-response').style.display = 'block';")
+                textarea_box = browser.find_element_by_id('g-recaptcha-response')
+                textarea_box.send_keys(key_resolver)
+                submit_report_btn = browser.find_element_by_id('submit_complaint_button')
+                submit_report_btn.click()
+                try:
+                    change_language(browser)
+                    content = browser.find_element_by_css_selector('.page-default > div > h1')
+                    if content and 'Thank you' in content.text:
+                        print('Submit report successfully')
+                        video.count_success += 1
+                        video.save_to_db()
+                except Exception as ex:
+                    print('Submit report failed: {}'.format(str(ex)))
+                    video.count_fail += 1
+                    video.save_to_db()
 
 
 def get_proxy():

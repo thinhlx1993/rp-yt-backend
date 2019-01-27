@@ -5,9 +5,7 @@ import random
 import subprocess
 import requests
 from time import sleep
-from bson import ObjectId
 from itertools import islice
-from pymongo import MongoClient
 from selenium import webdriver
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.by import By
