@@ -6,10 +6,10 @@ import subprocess
 import platform
 
 import requests
+from selenium.webdriver.support.ui import Select
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.keys import Keys
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions
@@ -19,11 +19,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 
 from sqlalchemy.ext.declarative import declarative_base
-from  sqlalchemy.sql.expression import func, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, Integer, Text
 from sqlalchemy import create_engine
-api_key = '094c2420f179731334edccbf176dbd79'
+
+api_key = 'ddc61b61b359963abe27e6cf3213bc34'
 engine = create_engine('sqlite:///etc/db/prd.db', echo=True)
 Session = sessionmaker(bind=engine)
 session = Session()
@@ -148,8 +148,8 @@ class FakeUser(Base):
 
     @classmethod
     def find_random(cls):
-        rand = random.randrange(0, session.query(Email).count())
-        row = session.query(Email)[rand]
+        rand = random.randrange(0, session.query(FakeUser).count())
+        row = session.query(FakeUser)[rand]
         return row
 
     def save_to_db(self):
@@ -202,15 +202,17 @@ class element_has_css_class(object):
             return element
         else:
             return False
-        
+
 
 def login(browser, email, password, recovery_email, phone):
     try:
         print(phone)
         browser.get('https://www.youtube.com/')
-        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "ytd-button-renderer.style-scope:nth-child(5) > a:nth-child(1)")))
+        WebDriverWait(browser, 30).until(EC.presence_of_element_located(
+            (By.CSS_SELECTOR, "ytd-button-renderer.style-scope:nth-child(5) > a:nth-child(1)")))
         # sign_in_btn = browser.find_element_by_css_selector('a.yt-simple-endpoint.style-scope.ytd-button-renderer')
-        sign_in_btn = browser.find_element_by_css_selector('ytd-button-renderer.style-scope:nth-child(5) > a:nth-child(1)')
+        sign_in_btn = browser.find_element_by_css_selector(
+            'ytd-button-renderer.style-scope:nth-child(5) > a:nth-child(1)')
         sign_in_btn.click()
 
         WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "identifierId")))
@@ -228,11 +230,13 @@ def login(browser, email, password, recovery_email, phone):
         WebDriverWait(browser, 60).until(EC.text_to_be_present_in_element((By.CSS_SELECTOR, "#headingText > content"),
                                                                           "Welcome"))
         next_btm = WebDriverWait(browser, 60).until(EC.presence_of_element_located((By.ID, "passwordNext")))
-        password_inp = WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH, "/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/div/form/content/section/div/content/div[1]/div/div[1]/div/div[1]/input")))
+        password_inp = WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.XPATH,
+                                                                                        "/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div[2]/div/div[1]/div/form/content/section/div/content/div[1]/div/div[1]/div/div[1]/input")))
         password_inp.send_keys(password)
         browser.execute_script("arguments[0].click();", next_btm)
         try:
-            WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Verify it\'s you'))
+            WebDriverWait(browser, 30).until(
+                EC.text_to_be_present_in_element((By.ID, "headingText"), 'Verify it\'s you'))
             print('Verify account')
             recovery_options = browser.find_elements_by_class_name('vdE7Oc')
             for recovery_option in recovery_options:
@@ -322,8 +326,8 @@ def login(browser, email, password, recovery_email, phone):
                         except Exception as ex:
                             print(ex)
 
-            # WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
-            # return 'disabled'
+                            # WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
+                            # return 'disabled'
 
         except Exception as ex:
             print('No need to input recovery email: {}'.format(str(ex)))
@@ -448,7 +452,7 @@ def change_language(browser):
                     return
     except Exception as ex:
         print('Change lang failed: {}'.format(str(ex)))
-        
+
 
 def stat_report(browser, login_status):
     while True:
@@ -491,13 +495,16 @@ def stat_report(browser, login_status):
                         avatar_btn = browser.find_element_by_id('avatar-btn')
                         avatar_btn.click()
 
-                        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
-                        lang_btns = browser.find_elements_by_css_selector('yt-icon.style-scope.ytd-compact-link-renderer')
+                        WebDriverWait(browser, 30).until(EC.presence_of_element_located(
+                            (By.CSS_SELECTOR, "yt-icon.style-scope.ytd-compact-link-renderer")))
+                        lang_btns = browser.find_elements_by_css_selector(
+                            'yt-icon.style-scope.ytd-compact-link-renderer')
                         for index, btn in enumerate(lang_btns):
                             if index == 10:
                                 btn.click()
 
-                        WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
+                        WebDriverWait(browser, 30).until(
+                            EC.presence_of_element_located((By.CSS_SELECTOR, "p.style-scope.ytd-account-settings")))
                         lang_item = browser.find_elements_by_css_selector('p.style-scope.ytd-account-settings')
                         lang_btn = None
                         for item in lang_item:
@@ -514,7 +521,8 @@ def stat_report(browser, login_status):
                             button.click()
 
                     sleep(2)
-                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.ytd-menu-service-item-renderer")))
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, ".style-scope.ytd-menu-service-item-renderer")))
                     report_btn = browser.find_elements_by_css_selector('.style-scope.ytd-menu-service-item-renderer')
                     for btn in report_btn:
                         if btn.text == 'Report':
@@ -540,15 +548,18 @@ def stat_report(browser, login_status):
                     browser.execute_script("arguments[0].click();", dropdown_btn)
 
                     sleep(1)
-                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
+                    WebDriverWait(browser, 30).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-options-renderer")))
                     reason = browser.find_elements_by_css_selector('.style-scope.yt-options-renderer')
                     for item in reason:
                         if item.text.lower().strip() == 'misleading thumbnail':
                             item.click()
 
                     sleep(2)
-                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
-                    text_btn = browser.find_elements_by_css_selector('.style-scope.yt-button-renderer.style-blue-text.size-default')
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located(
+                        (By.CSS_SELECTOR, ".style-scope.yt-button-renderer.style-blue-text.size-default")))
+                    text_btn = browser.find_elements_by_css_selector(
+                        '.style-scope.yt-button-renderer.style-blue-text.size-default')
                     for btn in text_btn:
                         if btn.text == 'NEXT':
                             btn.click()
@@ -561,15 +572,15 @@ def stat_report(browser, login_status):
                     input_9.clear()
                     input_9.send_keys(random.randint(1, 60))
 
-
                     # sleep(2)
                     # details_report = 'this video contains scam content'
                     # WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "textarea")))
                     # textarea = browser.find_element_by_id('textarea')
                     # textarea.send_keys(details_report)
-                    
+
                     sleep(3)
-                    text_btn = browser.find_elements_by_css_selector('.style-scope.ytd-button-renderer.style-blue-text.size-default')
+                    text_btn = browser.find_elements_by_css_selector(
+                        '.style-scope.ytd-button-renderer.style-blue-text.size-default')
                     for btn in text_btn:
                         if btn.text == 'REPORT':
                             browser.execute_script("arguments[0].click();", btn)
@@ -585,7 +596,7 @@ def stat_report(browser, login_status):
 
                     video.count_success += 1
                     video.save_to_db()
-                    
+
             except Exception as ex:
                 video.count_fail += 1
                 video.save_to_db()
@@ -593,37 +604,48 @@ def stat_report(browser, login_status):
 
 
 def key_resolver_captcha(api_url):
-    try:
-        r = requests.get(api_url)
-        res = r.text
-        if 'OK' in res:
-            request_id = res[3:]
-            resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
-            print(resolver_api)
-            while True:
-                sleep(5)
-                try:
-                    response = requests.get(resolver_api)
-                    response = response.text
-                    if 'OK' in response:
-                        response_key = response[3:]
-                        break
-                    if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
-                        response_key = None
-                        break
-                except Exception as ex:
-                    print('Get response error: {}'. format(str(ex)))
-
-            return response_key
-        else:
-            print('Can not get key api 2captcha.com')
-    except Exception as ex:
-        print('Can not resolver captcha: {}'.format(str(ex)))
-        return None
+    r = requests.get(api_url)
+    res = r.text
+    if 'OK' in res:
+        request_id = res[3:]
+        resolver_api = 'http://2captcha.com/res.php?key={}&action=get&id={}'.format(api_key, request_id)
+        print(resolver_api)
+        while True:
+            response = requests.get(resolver_api)
+            response = response.text
+            if 'OK' in response:
+                response_key = response[3:]
+                return response_key
+            if 'ERROR_CAPTCHA_UNSOLVABLE' in response:
+                return None
+            sleep(5)
+    else:
+        print('Can not get key api 2captcha.com')
 
 
 def report_license(browser):
+    while True:
+        tmp_email = Email.find_random()
+        email = tmp_email.email
+        password = tmp_email.password
+        recovery_email = tmp_email.recovery_email
+        phone = tmp_email.phone
+        login_response = login(browser, email, password, recovery_email, phone)
+        if login_response == 'success':
+            print('Logged in to youtube')
+            break
+        elif login_response == 'fail':
+            print('{} can not login to youtube'.format(email))
+            return
+        elif login_response == 'disabled':
+            print('{} is disabled'.format(email))
+            # db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+            return
+
     captcha_status = True
+
+    browser.get('https://www.youtube.com/copyright_complaint_form')
+
     try:
         title = browser.find_element_by_xpath('/html/body/div[1]/div/b')
         if title.text == 'About this page':
@@ -633,6 +655,7 @@ def report_license(browser):
             captcha_resolver_api = 'http://2captcha.com/in.php?key={}&method=userrecaptcha&googlekey={}&pageurl={}&here=now'.format(
                 api_key, google_key, current_url)
             key_resolver = key_resolver_captcha(captcha_resolver_api)
+            print(key_resolver)
             if key_resolver is not None:
                 browser.switch_to.default_content()
                 WebDriverWait(browser, 30).until(
@@ -641,8 +664,10 @@ def report_license(browser):
                     "document.getElementById('g-recaptcha-response').style.display = 'block';")
                 textarea_box = browser.find_element_by_id('g-recaptcha-response')
                 textarea_box.send_keys(key_resolver)
-                submit_report_btn = browser.find_element_by_xpath('/html/body/div[1]/form/input[3]')
-                submit_report_btn.click()
+                # submit_report_btn = browser.find_element_by_xpath('/html/body/div[1]/form/input[3]')
+                # submit_report_btn.click()
+                browser.execute_script("document.getElementById('captcha-form').submit();")
+                sleep(3)
             else:
                 captcha_status = False
     except Exception as ex:
@@ -650,7 +675,7 @@ def report_license(browser):
 
     videos = Video.find_all()
     for index_video, video in enumerate(videos):
-        if captcha_status:
+        if captcha_status and video.id == 477:
             change_language(browser)
             reason1 = 'copyright infringement (someone copied my creation)'
             reason2 = 'i am!'
@@ -673,16 +698,16 @@ def report_license(browser):
 
             video_url_0 = browser.find_element_by_id('video_url_0')
             video_url_0.send_keys(video.url)
-            from selenium.webdriver.support.ui import Select
+
             issue_type_0 = Select(browser.find_element_by_id('issue_type_0'))
-            issue_type_0.select_by_value('S')
+            issue_type_0.select_by_value('L')
 
             issue_details_wrapper = browser.find_element_by_class_name('issue_details_wrapper')
             conditional_value_validations = issue_details_wrapper.find_elements_by_css_selector(
                 '.conditional-value-validation')
             for conditional_value_validation in conditional_value_validations:
-                if conditional_value_validation.get_attribute('name') == 'issue_detail_S_0':
-                    conditional_value_validation.send_keys(video['title'])
+                if conditional_value_validation.get_attribute('name') == 'issue_detail_L_title_0':
+                    conditional_value_validation.send_keys(video.name)
 
             reason3 = 'entire video'
             position_marker = browser.find_element_by_class_name('position-marker-class-S-0')
@@ -747,6 +772,7 @@ def report_license(browser):
                     "document.getElementById('g-recaptcha-response').style.display = 'block';")
                 textarea_box = browser.find_element_by_id('g-recaptcha-response')
                 textarea_box.send_keys(key_resolver)
+                browser.execute_script("document.getElementById('submit_complaint').submit();")
                 submit_report_btn = browser.find_element_by_id('submit_complaint_button')
                 submit_report_btn.click()
                 try:
@@ -783,19 +809,20 @@ def get_proxy():
 def ping_ok(sHost):
     try:
         output = subprocess.check_output("ping -{} 1 {}". \
-                                         format('n' if platform.system().lower()=="windows" else 'c', sHost), shell=True)
+                                         format('n' if platform.system().lower() == "windows" else 'c', sHost),
+                                         shell=True)
         output = str(output)
         print(output)
         index = output.index('time')
         ending = output.index('ms TTL')
-        time = output[index+5: ending]
+        time = output[index + 5: ending]
         print(int(time))
         return int(time) < 300
     except Exception as e:
         print(e)
         return False
 
-        
+
 def create_browser(proxy, user_agent):
     capabilities = DesiredCapabilities.FIREFOX.copy()
     capabilities['marionette'] = True
@@ -821,9 +848,9 @@ def create_browser(proxy, user_agent):
         profile.set_preference("network.proxy.socks", proxy['host'])
         profile.set_preference("network.proxy.socks_port", proxy['port'])
         profile.set_preference("network.proxy.socks_version", 5)
-        
+
     options = webdriver.FirefoxOptions()
-    
+
     print(sys.platform)
     if sys.platform == 'win32':
         geckodriver = 'etc/geckodriver-v0.21.0-win64/geckodriver.exe'
@@ -833,7 +860,7 @@ def create_browser(proxy, user_agent):
         geckodriver = 'etc/geckodriver-v0.21.0-linux64/geckodriver'
         binary = '/usr/bin/firefox'
         options.add_argument('--headless')
-    
+
     browser = webdriver.Firefox(
         executable_path=geckodriver,
         firefox_options=options,
@@ -842,22 +869,22 @@ def create_browser(proxy, user_agent):
         firefox_profile=profile)
     browser.maximize_window()
     return browser
-    
+
 
 def start_app(session):
     browser = None
-    proxy = dict(
-        host="127.0.0.1",
-        port=9951
-    )
-    # proxy = None
+    # proxy = dict(
+    #     host="127.0.0.1",
+    #     port=9951
+    # )
+    proxy = None
     print('Start Report')
 
     try:
         agent = Agent.find_random()
         browser = create_browser(proxy, agent)
         login_status = False
-        stat_report(browser, login_status)
+        report_license(browser)
         browser.quit()
     except Exception as ex:
         print("Main exception error: {}".format(str(ex)))
