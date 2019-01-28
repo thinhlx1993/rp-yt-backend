@@ -24,7 +24,7 @@ from sqlalchemy import Column, Integer, Text
 from sqlalchemy import create_engine
 
 api_key = 'ddc61b61b359963abe27e6cf3213bc34'
-engine = create_engine('sqlite:///etc/db/prd.db', echo=True)
+engine = create_engine('sqlite:///etc/db/prd.db', echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 Base = declarative_base()
@@ -341,7 +341,7 @@ def login(browser, email, password, recovery_email, phone):
         except Exception as ex:
             pass
 
-        ui.WebDriverWait(browser, 10).until(expected_conditions.url_matches('https://www.youtube.com'))
+        ui.WebDriverWait(browser, 30).until(expected_conditions.url_matches('https://www.youtube.com'))
         print('Login success')
         return 'success'
     except Exception as ex:
@@ -676,6 +676,8 @@ def report_license(browser):
     videos = Video.find_all()
     for index_video, video in enumerate(videos):
         if captcha_status and video.id == 477:
+
+            WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.ID, "complaint_filter_div")))
             change_language(browser)
             reason1 = 'copyright infringement (someone copied my creation)'
             reason2 = 'i am!'
