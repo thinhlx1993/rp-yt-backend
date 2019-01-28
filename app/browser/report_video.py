@@ -875,11 +875,11 @@ def create_browser(proxy, user_agent):
 
 def start_app(session):
     browser = None
-    # proxy = dict(
-    #     host="127.0.0.1",
-    #     port=9951
-    # )
-    proxy = None
+    proxy = dict(
+        host="127.0.0.1",
+        port=9951
+    )
+    # proxy = None
     print('Start Report')
 
     try:
