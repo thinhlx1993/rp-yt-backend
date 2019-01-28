@@ -142,13 +142,14 @@ def fake_ip_by_vipsock72():
     # time.sleep(5)
 
     while True:
-        # run_command("etc\\fakeip\\new_ip.exe")
-        # time.sleep(2)
+        run_command("etc\\fakeip\\new_ip.exe")
+        time.sleep(2)
         start_app(session)
-        # run_command("etc\\fakeip\\clear_ip.exe")
-        # time.sleep(5)
+        run_command("etc\\fakeip\\clear_ip.exe")
+        time.sleep(5)
 
-
+# owner_display_name
+# requester_title
 class SystemTrayIcon(QtWidgets.QSystemTrayIcon):
 
     def __init__(self, icon, parent=None):

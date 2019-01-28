@@ -721,10 +721,12 @@ def report_license(browser):
             fake_user = FakeUser.find_random()
 
             owner_display_name = browser.find_element_by_id('owner_display_name')
-            owner_display_name.send_keys(fake_user.name)
+            owner = "TV Asahi Corporation"
+            owner_display_name.send_keys(owner)
 
             requester_title = browser.find_element_by_id('requester_title')
-            requester_title.send_keys(fake_user.name)
+            requester = "copyright belong to Ashahi"
+            requester_title.send_keys(requester)
 
             requester_name = browser.find_element_by_id('requester_name')
             requester_name.send_keys(fake_user.name)
