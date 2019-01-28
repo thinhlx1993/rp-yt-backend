@@ -773,8 +773,8 @@ def report_license(browser):
                 textarea_box = browser.find_element_by_id('g-recaptcha-response')
                 textarea_box.send_keys(key_resolver)
                 browser.execute_script("document.getElementById('submit_complaint').submit();")
-                submit_report_btn = browser.find_element_by_id('submit_complaint_button')
-                submit_report_btn.click()
+                # submit_report_btn = browser.find_element_by_id('submit_complaint_button')
+                # submit_report_btn.click()
                 try:
                     change_language(browser)
                     content = browser.find_element_by_css_selector('.page-default > div > h1')
