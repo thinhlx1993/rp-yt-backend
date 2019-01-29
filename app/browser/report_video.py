@@ -324,7 +324,7 @@ def login(browser, email, password, recovery_email, phone):
                             browser.execute_script("arguments[0].click();", next_btn)
                             break
                         except Exception as ex:
-                            print(ex)
+                            sleep(2)
 
                             # WebDriverWait(browser, 30).until(EC.text_to_be_present_in_element((By.ID, "headingText"), 'Account Disabled'))
                             # return 'disabled'
@@ -427,7 +427,9 @@ def submit_report(browser, report_channel, report_reason_1, report_reason_2, rep
 def get_key_recaptcha(browser, xpath):
     try:
         browser.switch_to.default_content()
-        iframe_switch = browser.find_element(By.XPATH, xpath)
+        iframe_switch = WebDriverWait(browser, 30).until(
+            EC.presence_of_element_located((By.XPATH, xpath)))
+        # iframe_switch = browser.find_element(By.XPATH, xpath)
         key = iframe_switch.get_attribute('src')
         keys = key.split('&')
         for item in keys:
@@ -623,24 +625,25 @@ def key_resolver_captcha(api_url):
         print('Can not get key api 2captcha.com')
 
 
-def report_license(browser):
-    while True:
-        tmp_email = Email.find_random()
-        email = tmp_email.email
-        password = tmp_email.password
-        recovery_email = tmp_email.recovery_email
-        phone = tmp_email.phone
-        login_response = login(browser, email, password, recovery_email, phone)
-        if login_response == 'success':
-            print('Logged in to youtube')
-            break
-        elif login_response == 'fail':
-            print('{} can not login to youtube'.format(email))
-            return
-        elif login_response == 'disabled':
-            print('{} is disabled'.format(email))
-            # db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
-            return
+def report_license(browser, login_status):
+    if not login_status:
+        while True:
+            tmp_email = Email.find_random()
+            email = tmp_email.email
+            password = tmp_email.password
+            recovery_email = tmp_email.recovery_email
+            phone = tmp_email.phone
+            login_response = login(browser, email, password, recovery_email, phone)
+            if login_response == 'success':
+                print('Logged in to youtube')
+                break
+            elif login_response == 'fail':
+                print('{} can not login to youtube'.format(email))
+                return
+            elif login_response == 'disabled':
+                print('{} is disabled'.format(email))
+                # db.email.update({'_id': tmp_email['_id']}, {'$set': {'status': False}})
+                return
 
     captcha_status = True
 
@@ -779,13 +782,21 @@ def report_license(browser):
                 browser.execute_script("document.getElementById('submit_complaint').submit();")
                 # submit_report_btn = browser.find_element_by_id('submit_complaint_button')
                 # submit_report_btn.click()
+                arlet_msg = WebDriverWait(browser, 30).until(
+                    EC.presence_of_element_located((By.CSS_SELECTOR, ".yt-alert-message")))
+                if arlet_msg and arlet_msg.text == 'Your copyright complaint is invalid. Please complete all required fields and correct invalid entries.':
+                    report_license(browser, True)
+
                 try:
-                    change_language(browser)
-                    content = browser.find_element_by_css_selector('.page-default > div > h1')
-                    if content and 'Thank you' in content.text:
-                        print('Submit report successfully')
-                        video.count_success += 1
-                        video.save_to_db()
+                    content = WebDriverWait(browser, 30).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, ".page-default > div > h1")))
+                    if content:
+                        change_language(browser)
+                        content = browser.find_element_by_css_selector('.page-default > div > h1')
+                        if 'Thank you' in content.text:
+                            print('Submit report successfully')
+                            video.count_success += 1
+                            video.save_to_db()
                 except Exception as ex:
                     print('Submit report failed: {}'.format(str(ex)))
                     video.count_fail += 1
@@ -872,6 +883,7 @@ def create_browser(proxy, user_agent):
         firefox_binary=binary,
         firefox_profile=profile)
     browser.maximize_window()
+    # browser.minimize_window()
     return browser
 
 
@@ -888,7 +900,7 @@ def start_app(session):
         agent = Agent.find_random()
         browser = create_browser(proxy, agent)
         login_status = False
-        report_license(browser)
+        report_license(browser, login_status)
         browser.quit()
     except Exception as ex:
         print("Main exception error: {}".format(str(ex)))
