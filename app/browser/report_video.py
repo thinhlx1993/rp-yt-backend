@@ -545,8 +545,8 @@ def stat_report(browser, login_status):
                             browser.execute_script("arguments[0].click();", reason)
 
                     sleep(1)
-                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-4")))
-                    dropdown_btn = browser.find_element_by_css_selector('#input-4')
+                    WebDriverWait(browser, 30).until(EC.presence_of_element_located((By.CSS_SELECTOR, "#input-5")))
+                    dropdown_btn = browser.find_element_by_css_selector('#input-5')
                     browser.execute_script("arguments[0].click();", dropdown_btn)
 
                     sleep(1)
@@ -900,7 +900,7 @@ def start_app(session):
         agent = Agent.find_random()
         browser = create_browser(proxy, agent)
         login_status = False
-        report_license(browser, login_status)
+        stat_report(browser, login_status)
         browser.quit()
     except Exception as ex:
         print("Main exception error: {}".format(str(ex)))
